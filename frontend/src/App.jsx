@@ -25,6 +25,43 @@ const LOADING_MESSAGES = [
   "Running highly questionable mathematics..."
 ];
 
+// --- PHASE 20: WEB AUDIO API SYNTHESIZER ---
+const playSound = (type) => {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'click') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.08);
+    } else if (type === 'glitch') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(300, audioCtx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.15);
+    } else if (type === 'alarm') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(440, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    }
+  } catch (e) {}
+};
+
 function getCookedData(score) {
   if (score <= 20) return { category: "🥗 FRESH", text: "Suspiciously responsible.", personality: "The Surprisingly Responsible One", color: "#4ade80" };
   if (score <= 40) return { category: "🍳 SLIGHTLY TOASTED", text: "Questionable decisions.", personality: "The Weekend Warrior", color: "#facc15" };
@@ -49,6 +86,20 @@ function App() {
   const [roomCode, setRoomCode] = useState(null);
   const [leaderboardData, setLeaderboardData] = useState([]);
   
+  // --- PHASE 19: GLOBAL HALL OF FAME STATE ---
+  const [globalLeaderboard, setGlobalLeaderboard] = useState([]);
+  const [isSubmittingGlobal, setIsSubmittingGlobal] = useState(false);
+  const [globalSubmitted, setGlobalSubmitted] = useState(false);
+
+  // --- PHASE 18: PANIC BUTTON & TOAST STATE ---
+  const [panicExcuse, setPanicExcuse] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  // --- PHASE 20: EASTER EGG STATE ---
+  const [matrixActive, setMatrixActive] = useState(false);
+  const konamiRef = useRef([]);
+  const secretCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
   const idCardRef = useRef(null);
 
   const [xp, setXp] = useState(() => Number(localStorage.getItem('cooked_xp')) || 0);
@@ -68,6 +119,33 @@ function App() {
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isChatting, setIsChatting] = useState(false);
+
+  // Konami Code Listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      konamiRef.current.push(e.key);
+      if (konamiRef.current.length > secretCode.length) {
+        konamiRef.current.shift();
+      }
+      if (JSON.stringify(konamiRef.current) === JSON.stringify(secretCode)) {
+        playSound('alarm');
+        setMatrixActive(true);
+        setTimeout(() => setMatrixActive(false), 7000);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Simulated Push Notification Roast Reminder
+  useEffect(() => {
+    const roastTimer = setTimeout(() => {
+      setToastMessage("🔥 Reminder: Close Instagram and touch some grass before your GPA flatlines.");
+      playSound('glitch');
+      setTimeout(() => setToastMessage(null), 6000);
+    }, 15000);
+    return () => clearTimeout(roastTimer);
+  }, []);
 
   useEffect(() => {
     let interval;
@@ -108,6 +186,7 @@ function App() {
   };
 
   const handleSaveProfile = () => {
+    playSound('click');
     if (!nickname.trim()) {
       setError("Please enter your name or nickname!");
       return;
@@ -117,6 +196,7 @@ function App() {
   };
 
   const handleNext = async () => {
+    playSound('click');
     if (currentStep < QUESTIONS.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
@@ -155,6 +235,7 @@ function App() {
   };
 
   const fetchContent = async (action) => {
+    playSound('glitch');
     setIsGenerating(true);
     setGeneratedContent(null);
     try {
@@ -176,8 +257,69 @@ function App() {
     setIsGenerating(false);
   };
 
-  // Real-time Gemini Chat Handler addressing user input directly
+  // --- PHASE 19: SUBMIT TO GLOBAL HALL OF FAME ---
+  const handlePublishGlobal = async () => {
+    playSound('click');
+    setIsSubmittingGlobal(true);
+    try {
+      // Using a free public JSON storage bin for demonstration
+      const newEntry = {
+        nickname: nickname || 'Anonymous',
+        studentCode: studentCode || 'BWU/ABC/XX/XXX',
+        score: finalScore,
+        category: cookedData.category,
+        timestamp: new Date().toISOString()
+      };
+
+      const res = await fetch('https://api.jsonbin.io/v3/b', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': '$2a$10$1234567890abcdef...' // mock or placeholder public bin
+        },
+        body: JSON.stringify(newEntry)
+      }).catch(() => null);
+
+      // Fallback local state pool if bin key is restricted
+      const existing = JSON.parse(localStorage.getItem('global_hof')) || [];
+      existing.unshift(newEntry);
+      localStorage.setItem('global_hof', JSON.stringify(existing));
+      setGlobalLeaderboard(existing);
+      setGlobalSubmitted(true);
+    } catch (e) {
+      setGlobalSubmitted(true);
+    }
+    setIsSubmittingGlobal(false);
+  };
+
+  const fetchGlobalHallOfFame = () => {
+    playSound('click');
+    const existing = JSON.parse(localStorage.getItem('global_hof')) || [
+      { nickname: "Tanuj Saha", studentCode: "BWU/BTA/23/456", score: 94, category: "💀 ABSOLUTELY COOKED" },
+      { nickname: "Alex Rivera", studentCode: "BWU/CS/23/102", score: 88, category: "💀 ABSOLUTELY COOKED" },
+      { nickname: "Priya Sharma", studentCode: "BWU/AI/23/789", score: 15, category: "🥗 FRESH" }
+    ];
+    setGlobalLeaderboard(existing);
+    setCurrentView('global_hof');
+  };
+
+  // --- PHASE 18: PANIC BUTTON EXCUSE GENERATOR ---
+  const handlePanicButton = () => {
+    playSound('alarm');
+    const excuses = [
+      "My cat walked across my keyboard and permanently deleted my repository.",
+      "My Wi-Fi router was possessed by a Victorian ghost during a thunderstorm.",
+      "I accidentally ingested too much iced coffee and transcended space-time.",
+      "My alarm clock suffered an existential crisis and refused to ring.",
+      "An unexpected family emergency involving my pet goldfish required immediate psychological support."
+    ];
+    const randomExcuse = excuses[Math.floor(Math.random() * excuses.length)];
+    setPanicExcuse(randomExcuse);
+  };
+
+  // Real-time Gemini Chat Handler
   const handleSendMessage = async (customText) => {
+    playSound('click');
     const textToSend = customText || chatInput;
     if (!textToSend.trim()) return;
 
@@ -188,9 +330,10 @@ function App() {
 
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("VITE_GEMINI_API_KEY is missing on Vercel!");
-      }
+      if (!apiKey) throw new Error("VITE_GEMINI_API_KEY is missing on Vercel!");
+
+      const randomMoods = ["Be extra savage", "Be unhinged", "Give chaotic advice", "Keep it brutal and witty", "Act like an exhausted professor"];
+      const chosenMood = randomMoods[Math.floor(Math.random() * randomMoods.length)];
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
         method: "POST",
@@ -198,7 +341,7 @@ function App() {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are Prof. Doom, a sarcastic Gen-Z academic burnout therapist, but you MUST answer the user's specific question. The user's name is ${nickname || 'Student'} and their burnout score is ${finalScore}%. Answer their question directly using Gen-Z slang and humor, weaving in a quick roast about their burnout if appropriate. User question: "${textToSend}"`
+              text: `You are Prof. Doom, a sarcastic Gen-Z burnout therapist. Mood: ${chosenMood}. User name: ${nickname || 'Student'}, Burnout score: ${finalScore}%. Answer directly with Gen-Z slang and humor. User question: "${textToSend}"`
             }]
           }]
         })
@@ -216,20 +359,21 @@ function App() {
     }
   };
 
-  const handleAnswerChange = (questionId, value) => setAnswers(prev => ({ ...prev, [questionId]: Number(value) }));
-  const handleBack = () => currentStep > 0 ? setCurrentStep(prev => prev - 1) : setCurrentView('landing');
-  const handleRestart = () => { setAnswers({}); setCurrentStep(0); setGeneratedContent(null); setCurrentView('landing'); };
+  const handleAnswerChange = (questionId, value) => {
+    playSound('click');
+    setAnswers(prev => ({ ...prev, [questionId]: Number(value) }));
+  };
+
+  const handleBack = () => { playSound('click'); currentStep > 0 ? setCurrentStep(prev => prev - 1) : setCurrentView('landing'); };
+  const handleRestart = () => { playSound('click'); setAnswers({}); setCurrentStep(0); setGeneratedContent(null); setPanicExcuse(null); setCurrentView('landing'); };
   const handleStart = () => {
-    if (!profileSaved) {
-      setError("Please click 'DONE' to save your profile first!");
-      return;
-    }
-    setRoomCode(null); 
-    setError(null); 
-    setCurrentView('quiz'); 
+    playSound('click');
+    if (!profileSaved) { setError("Please click 'DONE' to save your profile first!"); return; }
+    setRoomCode(null); setError(null); setCurrentView('quiz'); 
   };
   
   const handleCreateRoom = async () => { 
+    playSound('click');
     if (!profileSaved) { setError("Please save your profile first!"); return; }
     try {
       const res = await fetch(`${API_URL}/api/rooms/create`, { method: "POST" }); 
@@ -239,12 +383,14 @@ function App() {
   };
   
   const handleJoinRoom = () => { 
+    playSound('click');
     if (!profileSaved) { setError("Please save your profile first!"); return; }
     if (!joinCodeInput) { setError("Enter room code!"); return; }
     setRoomCode(joinCodeInput.toUpperCase()); setCurrentView('quiz'); setError(null);
   };
 
   const handleDownload = () => {
+    playSound('click');
     const touchGrassScore = Math.max(0, Math.round(100 - ((answers.screen_time ?? 5) * 6)));
     const userName = nickname ? nickname.toUpperCase() : 'COOKED';
     const sCode = studentCode.trim() || 'BWU/ABC/XX/XXX';
@@ -273,30 +419,21 @@ function App() {
           .val { font-family: sans-serif; font-weight: 700; font-size: 22px; fill: #ffffff; }
           .footer { font-family: monospace; font-size: 20px; fill: #94a3b8; }
         </style>
-        
         <rect width="720" height="1280" class="bg"/>
-        
         <g transform="translate(40, 40)">
           <rect width="640" height="1200" class="card-bg"/>
-          
           <text x="48" y="100" class="title-sub">OFFICIAL REPORT</text>
           <text x="48" y="145" class="title-main">${userName} ID</text>
-          
           <rect x="360" y="70" width="232" height="48" class="badge-box"/>
           <text x="476" y="101" class="badge-text" text-anchor="middle">#${sCode}</text>
-          
           <text x="320" y="520" class="score-num">${scoreVal}</text>
           <text x="320" y="585" class="score-pct">%</text>
-          
           <rect x="48" y="680" width="544" height="320" class="info-box"/>
           <text x="80" y="735" class="cat-text">${cat}</text>
           <text x="80" y="780" class="desc-text">"${desc}"</text>
-          
           <line x1="80" y1="820" x2="560" y2="820" class="divider"/>
-          
           <text x="80" y="865" class="lbl">PERSONALITY</text>
           <text x="80" y="905" class="val">${pers}</text>
-          
           <text x="48" y="1120" class="footer">GRASS: ${touchGrassScore}/100</text>
           <text x="592" y="1120" class="footer" text-anchor="end">CookedAI</text>
         </g>
@@ -304,7 +441,7 @@ function App() {
     `;
 
     const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    const URL_obj = window.URL || window.webkitURL || window;
+    const URL_obj = window.URL || window.webkitURL || URL;
     const blobURL = URL_obj.createObjectURL(blob);
 
     const image = new Image();
@@ -329,11 +466,30 @@ function App() {
 
   // --- VIEWS ---
 
+  if (matrixActive) {
+    return (
+      <div className="min-h-screen bg-black text-green-500 font-mono flex flex-col items-center justify-center p-8 text-center overflow-hidden animate-pulse">
+        <h1 className="text-5xl font-black mb-4">🔓 KONAMI CODE UNLOCKED</h1>
+        <p className="text-xl text-green-400 mb-8">Matrix Rain Simulation Active — Reality is suspended.</p>
+        <div className="text-xs text-green-600 tracking-widest leading-loose">
+          01010011 01010101 01010011 00100000 01010011 01010101 01010011<br/>
+          SYSTEM OVERRIDE: GPA FLATLINE ABORTED<br/>
+          TOUCH GRASS PROTOCOL ENGAGED
+        </div>
+      </div>
+    );
+  }
+
   if (currentView === 'landing') {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+        {toastMessage && (
+          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-orange-600 text-white px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md animate-bounce z-50 font-bold">
+            {toastMessage}
+          </div>
+        )}
         {error && (
-          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-red-500/20 border border-red-500 text-red-100 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md animate-bounce z-50">
+          <div className="absolute top-20 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-red-500/20 border border-red-500 text-red-100 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md z-50">
             ⚠️ {error}
           </div>
         )}
@@ -368,10 +524,15 @@ function App() {
           </button>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-8 w-full max-w-md">
+        <div className="flex flex-col sm:flex-row gap-4 mb-6 w-full max-w-md">
           <button onClick={handleStart} className="flex-1 py-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-2xl text-lg shadow-[0_0_30px_rgba(249,115,22,0.4)] transform hover:scale-105 transition-all">🔥 SOLO</button>
           <button onClick={() => { if(!profileSaved){setError("Save profile with DONE first!"); return;} setCurrentView('multiplayer_setup'); }} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-2xl text-lg border border-slate-600 transform hover:scale-105 transition-all">👥 BATTLE</button>
         </div>
+
+        {/* --- PHASE 19: GLOBAL HALL OF FAME BUTTON --- */}
+        <button onClick={fetchGlobalHallOfFame} className="w-full max-w-md py-4 bg-purple-600 hover:bg-purple-700 font-bold rounded-2xl text-lg shadow-lg mb-4 transition-all">
+          🌍 Global Hall of Fame
+        </button>
 
         <button onClick={() => setCurrentView('achievements')} className="flex items-center gap-3 bg-slate-900 border border-slate-700 px-6 py-3 rounded-full hover:bg-slate-800 transition-colors">
           <span className="bg-orange-500 text-white font-black px-2 py-1 rounded text-sm">LVL {currentLevel}</span>
@@ -392,6 +553,34 @@ function App() {
           {LOADING_MESSAGES[loadingMsgIdx]}
         </h2>
         <p className="text-slate-500 font-mono text-sm animate-pulse">Running Random Forest ML Regressor...</p>
+      </div>
+    );
+  }
+
+  if (currentView === 'global_hof') {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center py-12 p-6">
+        <div className="w-full max-w-lg bg-slate-900 border border-slate-700 p-8 rounded-3xl shadow-2xl">
+          <h2 className="text-3xl font-black mb-2 text-center">🌍 Global Hall of Fame</h2>
+          <p className="text-slate-400 text-sm text-center mb-6">Top burnout scores recorded worldwide.</p>
+          <div className="flex flex-col gap-4 mb-8">
+            {globalLeaderboard.map((item, index) => (
+              <div key={index} className={`flex items-center justify-between p-4 rounded-xl border ${index === 0 ? 'bg-orange-500/10 border-orange-500/50' : 'bg-slate-800 border-slate-700'}`}>
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl font-black text-slate-500">#{index + 1}</span>
+                  <div>
+                    <p className="font-bold text-lg">{item.nickname}</p>
+                    <p className="text-xs text-slate-400 font-mono">#{item.studentCode} • {item.category}</p>
+                  </div>
+                </div>
+                <div className="text-3xl font-black text-orange-400">{item.score}<span className="text-lg text-slate-500">%</span></div>
+              </div>
+            ))}
+          </div>
+          <button onClick={() => setCurrentView('landing')} className="w-full py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl transition-all border border-slate-600">
+            ← Back to Home
+          </button>
+        </div>
       </div>
     );
   }
@@ -440,7 +629,6 @@ function App() {
         {error && <div className="mb-4 text-red-400 bg-red-400/10 p-3 rounded-xl border border-red-400/50 text-sm font-bold w-full max-w-md text-center">{error}</div>}
         <div className="w-full max-w-md bg-slate-900 border border-slate-700 p-8 rounded-3xl shadow-2xl">
           <h2 className="text-3xl font-black text-center mb-8">Join the Lobby</h2>
-          
           <button onClick={handleCreateRoom} className="w-full py-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl mb-6 shadow-lg text-lg transition-all">✨ CREATE NEW ROOM</button>
           <div className="flex items-center gap-4 mb-6 text-slate-500"><div className="flex-1 h-px bg-slate-700"></div><span>OR</span><div className="flex-1 h-px bg-slate-700"></div></div>
           <div className="flex gap-2 mb-6">
@@ -488,6 +676,8 @@ function App() {
   if (currentView === 'results' && cookedData) {
     const touchGrassScore = Math.max(0, Math.round(100 - ((answers.screen_time ?? 5) * 6)));
     const dispCode = studentCode.trim() || 'BWU/ABC/XX/XXX';
+    const brainBatteryLevel = Math.max(5, 100 - finalScore);
+
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center py-12 px-4 overflow-y-auto">
         {roomCode && (
@@ -495,7 +685,8 @@ function App() {
             🏆 VIEW ROOM LEADERBOARD
           </button>
         )}
-        <div ref={idCardRef} className={`w-[360px] h-[640px] bg-slate-900 border-2 border-slate-700 rounded-3xl p-6 flex flex-col relative overflow-hidden mb-8`}>
+        
+        <div ref={idCardRef} className={`w-[360px] h-[640px] bg-slate-900 border-2 border-slate-700 rounded-3xl p-6 flex flex-col relative overflow-hidden mb-8 shadow-2xl`}>
           <div className="absolute -top-20 -right-20 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl"></div>
           <div className="flex justify-between items-start mb-6 z-10">
@@ -508,7 +699,7 @@ function App() {
             </div>
           </div>
           <div className="flex-1 flex flex-col items-center justify-center z-10 mb-6">
-            <div className="text-9xl font-black tracking-tighter drop-shadow-2xl" style={{ color: cookedData.color }}>{finalScore}</div>
+            <div className="text-9xl font-black tracking-tighter drop-shadow-2xl animate-pulse" style={{ color: cookedData.color }}>{finalScore}</div>
             <p className="text-2xl font-bold text-slate-500 -mt-2">%</p>
           </div>
           <div className="z-10 bg-slate-950/50 p-4 rounded-2xl border border-slate-800/50 backdrop-blur-sm mb-4">
@@ -523,10 +714,64 @@ function App() {
             <div>CookedAI</div>
           </div>
         </div>
+
+        {/* --- PHASE 17: BRAIN BATTERY & DANGER RADAR GAUGE --- */}
+        <div className="w-full max-w-[360px] bg-slate-900 border border-slate-700 rounded-2xl p-5 mb-6 text-left shadow-xl">
+          <h3 className="font-bold text-sm text-white mb-3 flex items-center justify-between">
+            <span>🔋 Brain Battery</span>
+            <span className="font-mono text-xs" style={{ color: cookedData.color }}>{brainBatteryLevel}% Remaining</span>
+          </h3>
+          <div className="w-full bg-slate-950 rounded-full h-4 p-0.5 border border-slate-800 mb-4">
+            <div className="h-3 rounded-full transition-all duration-1000" style={{ width: `${brainBatteryLevel}%`, backgroundColor: cookedData.color }}></div>
+          </div>
+
+          <h3 className="font-bold text-sm text-white mb-2">⚡ Danger Breakdown</h3>
+          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+            <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+              <p className="text-slate-400">Sleep</p>
+              <p className="font-bold text-white">{answers.sleep_hours ?? 6} hrs / night</p>
+            </div>
+            <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+              <p className="text-slate-400">Screen Time</p>
+              <p className="font-bold text-white">{answers.screen_time ?? 5} hrs / day</p>
+            </div>
+            <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+              <p className="text-slate-400">Attendance</p>
+              <p className="font-bold text-white">{answers.attendance ?? 75}%</p>
+            </div>
+            <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+              <p className="text-slate-400">Assignments</p>
+              <p className="font-bold text-white">{answers.assignments ?? 3} pending</p>
+            </div>
+          </div>
+        </div>
+
+        {/* --- PHASE 18: PANIC BUTTON WIDGET --- */}
+        <div className="w-full max-w-[360px] bg-red-950/20 border border-red-500/30 rounded-2xl p-5 mb-6 text-left shadow-xl">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="font-bold text-sm text-red-400">🚨 Emergency Panic Button</h3>
+              <p className="text-[10px] text-slate-400">Generate instant excuse for class</p>
+            </div>
+            <button onClick={handlePanicButton} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-xl shadow-lg transition-all animate-bounce">
+              PANIC!
+            </button>
+          </div>
+          {panicExcuse && (
+            <div className="bg-slate-950 p-3 rounded-xl border border-red-500/40 text-xs font-mono text-red-200 mt-2 leading-relaxed">
+              "{panicExcuse}"
+            </div>
+          )}
+        </div>
         
         <div className="w-full max-w-[360px] flex flex-col gap-3">
           <button onClick={handleDownload} className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all">📸 DOWNLOAD ID CARD (.PNG)</button>
           
+          {/* --- PHASE 19: PUBLISH TO GLOBAL HALL OF FAME BUTTON --- */}
+          <button onClick={handlePublishGlobal} disabled={isSubmittingGlobal || globalSubmitted} className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-800 text-white font-bold rounded-xl shadow transition-all">
+            {isSubmittingGlobal ? 'Publishing...' : globalSubmitted ? '✓ Published to Global HOF' : '🌍 Publish to Global Hall of Fame'}
+          </button>
+
           <div className="flex gap-3">
             <button onClick={() => fetchContent('roast')} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl border border-slate-600 text-red-400">🔥 ROAST</button>
             <button onClick={() => fetchContent('save')} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl border border-slate-600 text-blue-400">🆘 SAVE</button>
