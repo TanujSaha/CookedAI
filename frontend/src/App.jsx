@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 
-// Dynamically use environment variable in production, fallback to localhost for development
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const QUESTIONS = [
@@ -43,7 +42,9 @@ function App() {
   const [finalScore, setFinalScore] = useState(0);
   const [cookedData, setCookedData] = useState(null);
   
+  // Custom User Details
   const [nickname, setNickname] = useState('');
+  const [studentCode, setStudentCode] = useState('BWU/BTA/23/456');
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [roomCode, setRoomCode] = useState(null);
   const [leaderboardData, setLeaderboardData] = useState([]);
@@ -61,7 +62,6 @@ function App() {
   const [generatedContent, setGeneratedContent] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Leaderboard Polling
   useEffect(() => {
     let interval;
     if (currentView === 'leaderboard' && roomCode) {
@@ -78,7 +78,6 @@ function App() {
     return () => clearInterval(interval);
   }, [currentView, roomCode]);
 
-  // Loading Text Cycler
   useEffect(() => {
     let interval;
     if (currentView === 'calculating') {
@@ -132,7 +131,7 @@ function App() {
         }
         setTimeout(() => setCurrentView('results'), 3500);
       } catch (err) {
-        setError("Failed to reach the AI Backend. Please ensure your Python server (Uvicorn) is running.");
+        setError("Failed to reach the AI Backend. Please ensure your Python server is running.");
         setCurrentView('landing');
       }
     }
@@ -179,11 +178,23 @@ function App() {
     setRoomCode(joinCodeInput.toUpperCase()); setCurrentView('quiz'); setError(null);
   };
 
+  // --- FIXED DOWNLOAD FUNCTION WITH HTML2CANVAS OPTIONS ---
   const handleDownload = async () => { 
     if (!idCardRef.current) return; 
-    const canvas = await html2canvas(idCardRef.current, { backgroundColor: '#0f172a', scale: 2 }); 
-    const fakeLink = document.createElement("a"); fakeLink.download = `Cooked_ID_${finalScore}.png`; 
-    fakeLink.href = canvas.toDataURL("image/png", 1.0); fakeLink.click(); 
+    try {
+      const canvas = await html2canvas(idCardRef.current, { 
+        backgroundColor: '#0f172a', 
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      }); 
+      const fakeLink = document.createElement("a"); 
+      fakeLink.download = `Cooked_ID_${finalScore}.png`; 
+      fakeLink.href = canvas.toDataURL("image/png", 1.0); 
+      fakeLink.click(); 
+    } catch (err) {
+      alert("Download failed. Try taking a screenshot instead!");
+    }
   };
 
   // --- VIEWS ---
@@ -196,12 +207,31 @@ function App() {
             ⚠️ {error}
           </div>
         )}
-        <h1 className="text-6xl md:text-8xl font-black mb-6 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 text-transparent bg-clip-text mt-12">CookedAI</h1>
-        <p className="text-xl md:text-2xl text-slate-400 mb-12 font-medium">Find out before your professor does.</p>
-        <div className="flex flex-col sm:flex-row gap-4 mb-10 w-full max-w-md">
+        <h1 className="text-6xl md:text-8xl font-black mb-2 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 text-transparent bg-clip-text mt-8">CookedAI</h1>
+        <p className="text-xl md:text-2xl text-slate-400 mb-8 font-medium">Find out before your professor does.</p>
+        
+        {/* User Details Setup Card */}
+        <div className="w-full max-w-md bg-slate-900 border border-slate-700 p-6 rounded-3xl shadow-xl mb-6 text-left">
+          <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Your Name / Nickname</label>
+          <input 
+            type="text" maxLength="15" value={nickname} onChange={(e) => setNickname(e.target.value)} 
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mb-4 text-white focus:outline-none focus:border-orange-500" 
+            placeholder="e.g. Tanuj Saha" 
+          />
+          
+          <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Student Code</label>
+          <input 
+            type="text" value={studentCode} onChange={(e) => setStudentCode(e.target.value)} 
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white font-mono focus:outline-none focus:border-orange-500" 
+            placeholder="BWU/BTA/23/456" 
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 mb-8 w-full max-w-md">
           <button onClick={handleStart} className="flex-1 py-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-2xl text-lg shadow-[0_0_30px_rgba(249,115,22,0.4)] transform hover:scale-105 transition-all">🔥 SOLO</button>
           <button onClick={() => setCurrentView('multiplayer_setup')} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-2xl text-lg border border-slate-600 transform hover:scale-105 transition-all">👥 BATTLE</button>
         </div>
+
         <button onClick={() => setCurrentView('achievements')} className="flex items-center gap-3 bg-slate-900 border border-slate-700 px-6 py-3 rounded-full hover:bg-slate-800 transition-colors">
           <span className="bg-orange-500 text-white font-black px-2 py-1 rounded text-sm">LVL {currentLevel}</span>
           <span className="font-bold text-slate-300">My Stats & Badges</span><span className="text-slate-500">→</span>
@@ -269,15 +299,20 @@ function App() {
         {error && <div className="mb-4 text-red-400 bg-red-400/10 p-3 rounded-xl border border-red-400/50 text-sm font-bold w-full max-w-md text-center">{error}</div>}
         <div className="w-full max-w-md bg-slate-900 border border-slate-700 p-8 rounded-3xl shadow-2xl">
           <h2 className="text-3xl font-black text-center mb-8">Join the Lobby</h2>
-          <label className="block text-slate-400 text-sm font-bold mb-2">Your Nickname</label>
-          <input type="text" maxLength="12" value={nickname} onChange={(e) => setNickname(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mb-8 text-white focus:outline-none focus:border-orange-500" placeholder="e.g. Tanuj" />
+          
+          <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Your Nickname</label>
+          <input type="text" maxLength="12" value={nickname} onChange={(e) => setNickname(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mb-4 text-white focus:outline-none focus:border-orange-500" placeholder="e.g. Tanuj" />
+          
+          <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Student Code</label>
+          <input type="text" value={studentCode} onChange={(e) => setStudentCode(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mb-6 text-white font-mono focus:outline-none focus:border-orange-500" placeholder="BWU/BTA/23/456" />
+
           <button onClick={handleCreateRoom} className="w-full py-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl mb-6 shadow-lg text-lg transition-all">✨ CREATE NEW ROOM</button>
           <div className="flex items-center gap-4 mb-6 text-slate-500"><div className="flex-1 h-px bg-slate-700"></div><span>OR</span><div className="flex-1 h-px bg-slate-700"></div></div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 mb-6">
             <input type="text" maxLength="4" value={joinCodeInput} onChange={(e) => setJoinCodeInput(e.target.value)} className="w-1/2 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white uppercase text-center font-mono focus:outline-none focus:border-orange-500" placeholder="CODE" />
             <button onClick={handleJoinRoom} className="w-1/2 py-3 bg-slate-700 hover:bg-slate-600 font-bold rounded-xl transition-all">JOIN</button>
           </div>
-          <button onClick={() => {setCurrentView('landing'); setError(null);}} className="mt-8 text-slate-500 hover:text-white w-full text-center">Cancel</button>
+          <button onClick={() => {setCurrentView('landing'); setError(null);}} className="text-slate-500 hover:text-white w-full text-center">Cancel</button>
         </div>
       </div>
     );
@@ -332,7 +367,9 @@ function App() {
               <p className="text-[10px] text-slate-400 font-mono tracking-widest">OFFICIAL REPORT</p>
               <h2 className="font-black text-xl tracking-tight text-white">{nickname ? nickname.toUpperCase() : 'COOKED'} ID</h2>
             </div>
-            <div className="bg-slate-800/80 px-2 py-1 rounded text-xs font-mono text-slate-400 border border-slate-700">#BWU/BTA/23</div>
+            <div className="bg-slate-800/80 px-2 py-1 rounded text-xs font-mono text-slate-400 border border-slate-700">
+              #{studentCode}
+            </div>
           </div>
           <div className="flex-1 flex flex-col items-center justify-center z-10 mb-6">
             <div className={`text-9xl font-black tracking-tighter ${cookedData.color} drop-shadow-2xl`}>{finalScore}</div>
