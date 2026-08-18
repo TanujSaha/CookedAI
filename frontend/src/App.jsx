@@ -41,7 +41,6 @@ function App() {
   const [finalScore, setFinalScore] = useState(0);
   const [cookedData, setCookedData] = useState(null);
   
-  // Profile State
   const [nickname, setNickname] = useState('');
   const [studentCode, setStudentCode] = useState('');
   const [profileSaved, setProfileSaved] = useState(false);
@@ -198,6 +197,7 @@ function App() {
     setRoomCode(joinCodeInput.toUpperCase()); setCurrentView('quiz'); setError(null);
   };
 
+  // --- PNG DOWNLOAD HANDLER ---
   const handleDownload = () => {
     const touchGrassScore = Math.max(0, Math.round(100 - ((answers.screen_time ?? 5) * 6)));
     const userName = nickname ? nickname.toUpperCase() : 'COOKED';
@@ -258,14 +258,28 @@ function App() {
     `;
 
     const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Cooked_ID_${finalScore}.svg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const URL_obj = window.URL || window.webkitURL || window;
+    const blobURL = URL_obj.createObjectURL(blob);
+
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 720;
+      canvas.height = 1280;
+      const context = canvas.getContext('2d');
+      context.drawImage(image, 0, 0);
+
+      // Convert canvas to high-quality PNG
+      const pngUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = pngUrl;
+      link.download = `Cooked_ID_${finalScore}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL_obj.revokeObjectURL(blobURL);
+    };
+    image.src = blobURL;
   };
 
   // --- VIEWS ---
@@ -281,7 +295,6 @@ function App() {
         <h1 className="text-6xl md:text-8xl font-black mb-2 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 text-transparent bg-clip-text mt-8">CookedAI</h1>
         <p className="text-xl md:text-2xl text-slate-400 mb-8 font-medium">Find out before your professor does.</p>
         
-        {/* Profile Section & Done Button */}
         <div className="w-full max-w-md bg-slate-900 border border-slate-700 p-6 rounded-3xl shadow-xl mb-6 text-left relative">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-bold tracking-wider text-slate-400 uppercase">👤 Profile Setup</h3>
@@ -306,7 +319,7 @@ function App() {
             onClick={handleSaveProfile}
             className={`w-full py-3 font-bold rounded-xl transition-all shadow-md ${profileSaved ? 'bg-green-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
           >
-            {profileSaved ? '✓ PROFILE SAVED (CLICK DONE/SOLO)' : 'DONE'}
+            {profileSaved ? '✓ PROFILE SAVED (CLICK SOLO/BATTLE)' : 'DONE'}
           </button>
         </div>
 
@@ -467,7 +480,7 @@ function App() {
         </div>
         
         <div className="w-full max-w-[360px] flex flex-col gap-3">
-          <button onClick={handleDownload} className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all">📸 DOWNLOAD ID CARD (.SVG)</button>
+          <button onClick={handleDownload} className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all">📸 DOWNLOAD ID CARD (.PNG)</button>
           
           <div className="flex gap-3">
             <button onClick={() => fetchContent('roast')} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl border border-slate-600 text-red-400">🔥 ROAST</button>
