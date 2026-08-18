@@ -517,23 +517,40 @@ function App() {
     );
   }
 
-  // Dynamic Ambient Glow Color based on Score or Default
   const glowColor = cookedData ? cookedData.color : '#f97316';
 
   return (
     <div className="min-h-screen text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden bg-slate-950">
       
-      {/* --- ANIMATED MESH GRADIENT & AMBIENT GLOW BACKGROUND --- */}
+      {/* --- FAST ALTERNATING MESH GRADIENT & AMBIENT GLOW BACKGROUND --- */}
+      <style>{`
+        @keyframes meshShiftAlt {
+          0% { transform: translate(0px, 0px) scale(1); filter: hue-rotate(0deg); }
+          33% { transform: translate(60px, -80px) scale(1.2); filter: hue-rotate(120deg); }
+          66% { transform: translate(-70px, 50px) scale(0.9); filter: hue-rotate(240deg); }
+          100% { transform: translate(0px, 0px) scale(1); filter: hue-rotate(360deg); }
+        }
+        @keyframes ambientGlowPulse {
+          0% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.9); }
+          50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.3); }
+          100% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.9); }
+        }
+        .mesh-blob-1 { animation: meshShiftAlt 4s ease-in-out infinite alternate; }
+        .mesh-blob-2 { animation: meshShiftAlt 3.5s ease-in-out infinite alternate-reverse; }
+        .mesh-blob-3 { animation: meshShiftAlt 5s ease-in-out infinite alternate; }
+        .ambient-glow-box { animation: ambientGlowPulse 2.5s ease-in-out infinite; }
+      `}</style>
+
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-[30%] -left-[20%] w-[70vw] h-[70vw] rounded-full bg-purple-600/30 blur-[120px] animate-pulse" style={{ animationDuration: '8s' }}></div>
-        <div className="absolute top-[40%] -right-[20%] w-[60vw] h-[60vw] rounded-full bg-orange-600/25 blur-[140px] animate-pulse" style={{ animationDuration: '6s' }}></div>
-        <div className="absolute -bottom-[20%] left-[20%] w-[65vw] h-[65vw] rounded-full bg-blue-600/20 blur-[150px] animate-pulse" style={{ animationDuration: '10s' }}></div>
+        <div className="absolute -top-[30%] -left-[20%] w-[70vw] h-[70vw] rounded-full bg-purple-600/40 blur-[130px] mesh-blob-1"></div>
+        <div className="absolute top-[30%] -right-[20%] w-[65vw] h-[65vw] rounded-full bg-orange-600/35 blur-[150px] mesh-blob-2"></div>
+        <div className="absolute -bottom-[20%] left-[15%] w-[70vw] h-[70vw] rounded-full bg-blue-600/30 blur-[140px] mesh-blob-3"></div>
         
-        {/* Ambient Pulsing Center Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] rounded-full blur-[160px] opacity-40 transition-all duration-1000" style={{ backgroundColor: glowColor }}></div>
+        {/* Fast Pulsing Ambient Center Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[45vw] h-[45vw] rounded-full blur-[170px] ambient-glow-box" style={{ backgroundColor: glowColor }}></div>
       </div>
 
-      {/* --- MAIN APP CONTAINER (Z-INDEXED ABOVE MESH) --- */}
+      {/* --- MAIN APP CONTAINER --- */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center">
 
         {toastMessage && (
@@ -556,7 +573,7 @@ function App() {
             <h1 className="text-6xl md:text-8xl font-black mb-2 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 text-transparent bg-clip-text drop-shadow-md">CookedAI</h1>
             <p className="text-xl md:text-2xl text-slate-300 mb-8 font-medium drop-shadow">Find out before your professor does.</p>
             
-            <div className="w-full max-w-md bg-slate-900/70 border border-slate-700/80 backdrop-blur-xl p-6 rounded-3xl shadow-2xl mb-6 text-left relative">
+            <div className="w-full max-w-md bg-slate-950/60 border border-slate-700/80 backdrop-blur-2xl p-6 rounded-3xl shadow-2xl mb-6 text-left relative">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-sm font-bold tracking-wider text-slate-400 uppercase">👤 Profile Setup</h3>
                 {profileSaved && <span className="text-green-400 text-xs font-bold bg-green-500/20 px-2 py-1 rounded">✓ Saved</span>}
@@ -565,20 +582,20 @@ function App() {
               <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Your Name / Nickname</label>
               <input 
                 type="text" maxLength="15" value={nickname} onChange={(e) => { setNickname(e.target.value); setProfileSaved(false); }} 
-                className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 mb-4 text-white focus:outline-none focus:border-orange-500" 
+                className="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 mb-4 text-white focus:outline-none focus:border-orange-500" 
                 placeholder="e.g. Tanuj Saha" 
               />
               
               <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Student Code</label>
               <input 
                 type="text" value={studentCode} onChange={(e) => { setStudentCode(e.target.value); setProfileSaved(false); }} 
-                className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 mb-4 text-white font-mono focus:outline-none focus:border-orange-500" 
+                className="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 mb-4 text-white font-mono focus:outline-none focus:border-orange-500" 
                 placeholder="BWU / ABC / XX / XXX" 
               />
 
               <button 
                 onClick={handleSaveProfile}
-                className={`w-full py-3 font-bold rounded-xl transition-all shadow-md ${profileSaved ? 'bg-green-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                className={`w-full py-3 font-bold rounded-xl transition-all shadow-md ${profileSaved ? 'bg-green-600 text-white' : 'bg-slate-800 hover:bg-slate-700 text-white'}`}
               >
                 {profileSaved ? '✓ PROFILE SAVED (CLICK SOLO/BATTLE)' : 'DONE'}
               </button>
@@ -586,14 +603,14 @@ function App() {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-6 w-full max-w-md">
               <button onClick={handleStart} className="flex-1 py-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-2xl text-lg shadow-[0_0_30px_rgba(249,115,22,0.4)] transform hover:scale-105 transition-all">🔥 SOLO</button>
-              <button onClick={() => { if(!profileSaved){setError("Save profile with DONE first!"); return;} setCurrentView('multiplayer_setup'); }} className="flex-1 py-4 bg-slate-900/80 backdrop-blur-md hover:bg-slate-800 font-bold rounded-2xl text-lg border border-slate-700 transform hover:scale-105 transition-all">👥 BATTLE</button>
+              <button onClick={() => { if(!profileSaved){setError("Save profile with DONE first!"); return;} setCurrentView('multiplayer_setup'); }} className="flex-1 py-4 bg-slate-950/70 backdrop-blur-md hover:bg-slate-900 font-bold rounded-2xl text-lg border border-slate-700 transform hover:scale-105 transition-all">👥 BATTLE</button>
             </div>
 
             <button onClick={fetchGlobalHallOfFame} className="w-full max-w-md py-4 bg-purple-600/90 backdrop-blur-md hover:bg-purple-700 font-bold rounded-2xl text-lg shadow-xl mb-4 transition-all">
               🌍 Global Hall of Fame
             </button>
 
-            <button onClick={() => setCurrentView('achievements')} className="flex items-center gap-3 bg-slate-900/80 backdrop-blur-md border border-slate-700 px-6 py-3 rounded-full hover:bg-slate-800 transition-colors shadow-lg">
+            <button onClick={() => setCurrentView('achievements')} className="flex items-center gap-3 bg-slate-950/70 backdrop-blur-md border border-slate-700 px-6 py-3 rounded-full hover:bg-slate-900 transition-colors shadow-lg">
               <span className="bg-orange-500 text-white font-black px-2 py-1 rounded text-sm">LVL {currentLevel}</span>
               <span className="font-bold text-slate-300">My Stats & Badges</span><span className="text-slate-500">→</span>
             </button>
@@ -614,12 +631,12 @@ function App() {
         )}
 
         {currentView === 'global_hof' && (
-          <div className="w-full max-w-lg bg-slate-900/80 border border-slate-700 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl">
+          <div className="w-full max-w-lg bg-slate-950/70 border border-slate-700 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl">
             <h2 className="text-3xl font-black mb-2 text-center">🌍 Global Hall of Fame</h2>
             <p className="text-slate-400 text-sm text-center mb-6">Top burnout scores recorded worldwide.</p>
             <div className="flex flex-col gap-4 mb-8">
               {globalLeaderboard.map((item, index) => (
-                <div key={index} className={`flex items-center justify-between p-4 rounded-xl border ${index === 0 ? 'bg-orange-500/10 border-orange-500/50' : 'bg-slate-800/80 border-slate-700'}`}>
+                <div key={index} className={`flex items-center justify-between p-4 rounded-xl border ${index === 0 ? 'bg-orange-500/10 border-orange-500/50' : 'bg-slate-900/80 border-slate-700'}`}>
                   <div className="flex items-center gap-4">
                     <span className="text-2xl font-black text-slate-500">#{index + 1}</span>
                     <div className="text-left">
@@ -631,16 +648,16 @@ function App() {
                 </div>
               ))}
             </div>
-            <button onClick={() => setCurrentView('landing')} className="w-full py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl transition-all border border-slate-600">
+            <button onClick={() => setCurrentView('landing')} className="w-full py-4 bg-slate-900 hover:bg-slate-800 font-bold rounded-xl transition-all border border-slate-700">
               ← Back to Home
             </button>
           </div>
         )}
 
         {currentView === 'achievements' && (
-          <div className="w-full max-w-lg bg-slate-900/80 border border-slate-700 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl">
+          <div className="w-full max-w-lg bg-slate-950/70 border border-slate-700 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl">
             <h2 className="text-3xl font-black mb-8">Player Profile</h2>
-            <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 mb-8 text-left">
+            <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-700 mb-8 text-left">
               <div className="flex justify-between items-end mb-4">
                 <div>
                   <p className="text-sm text-slate-400 font-bold uppercase">Current Level</p>
@@ -648,7 +665,7 @@ function App() {
                 </div>
                 <p className="text-slate-400 font-mono text-sm">{xpProgress} / 100 XP</p>
               </div>
-              <div className="w-full bg-slate-950 rounded-full h-3">
+              <div className="w-full bg-black rounded-full h-3">
                 <div className="bg-orange-500 h-3 rounded-full transition-all duration-1000" style={{ width: `${xpProgress}%` }}></div>
               </div>
             </div>
@@ -657,7 +674,7 @@ function App() {
               {ALL_BADGES.map((badge) => {
                 const isUnlocked = badges.includes(badge.id);
                 return (
-                  <div key={badge.id} className={`p-4 rounded-2xl border text-left ${isUnlocked ? 'bg-orange-500/10 border-orange-500/50' : 'bg-slate-950/80 border-slate-800 opacity-50 grayscale'}`}>
+                  <div key={badge.id} className={`p-4 rounded-2xl border text-left ${isUnlocked ? 'bg-orange-500/10 border-orange-500/50' : 'bg-slate-950/80 border-slate-900 opacity-50 grayscale'}`}>
                     <div className="text-3xl mb-2">{isUnlocked ? badge.icon : '🔒'}</div>
                     <p className="font-bold text-white mb-1">{badge.id}</p>
                     <p className="text-xs text-slate-400">{badge.desc}</p>
@@ -665,37 +682,37 @@ function App() {
                 );
               })}
             </div>
-            <button onClick={() => setCurrentView('landing')} className="w-full py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl transition-all border border-slate-600">
+            <button onClick={() => setCurrentView('landing')} className="w-full py-4 bg-slate-900 hover:bg-slate-800 font-bold rounded-xl transition-all border border-slate-700">
               ← Back to Home
             </button>
           </div>
         )}
 
         {currentView === 'multiplayer_setup' && (
-          <div className="w-full max-w-md bg-slate-900/80 border border-slate-700 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl">
+          <div className="w-full max-w-md bg-slate-950/70 border border-slate-700 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl">
             <h2 className="text-3xl font-black text-center mb-8">Join the Lobby</h2>
             <button onClick={handleCreateRoom} className="w-full py-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl mb-6 shadow-lg text-lg transition-all">✨ CREATE NEW ROOM</button>
             <div className="flex items-center gap-4 mb-6 text-slate-500"><div className="flex-1 h-px bg-slate-700"></div><span>OR</span><div className="flex-1 h-px bg-slate-700"></div></div>
             <div className="flex gap-2 mb-6">
-              <input type="text" maxLength="4" value={joinCodeInput} onChange={(e) => setJoinCodeInput(e.target.value)} className="w-1/2 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-white uppercase text-center font-mono focus:outline-none focus:border-orange-500" placeholder="CODE" />
-              <button onClick={handleJoinRoom} className="w-1/2 py-3 bg-slate-700 hover:bg-slate-600 font-bold rounded-xl transition-all">JOIN</button>
+              <input type="text" maxLength="4" value={joinCodeInput} onChange={(e) => setJoinCodeInput(e.target.value)} className="w-1/2 bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 text-white uppercase text-center font-mono focus:outline-none focus:border-orange-500" placeholder="CODE" />
+              <button onClick={handleJoinRoom} className="w-1/2 py-3 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl transition-all">JOIN</button>
             </div>
             <button onClick={() => {setCurrentView('landing'); setError(null);}} className="text-slate-400 hover:text-white w-full text-center">Cancel</button>
           </div>
         )}
 
         {currentView === 'leaderboard' && (
-          <div className="w-full max-w-lg bg-slate-900/80 border border-slate-700 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl">
+          <div className="w-full max-w-lg bg-slate-950/70 border border-slate-700 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-3xl font-black">🏆 Leaderboard</h2>
-              <div className="bg-slate-800 px-3 py-1 rounded-lg font-mono text-orange-400 font-bold tracking-widest border border-slate-700">ROOM: {roomCode}</div>
+              <div className="bg-slate-900 px-3 py-1 rounded-lg font-mono text-orange-400 font-bold tracking-widest border border-slate-700">ROOM: {roomCode}</div>
             </div>
             <div className="flex flex-col gap-4 mb-8">
               {leaderboardData.length === 0 ? (
                 <p className="text-slate-400 text-center py-8">Waiting for players to finish...</p>
               ) : (
                 leaderboardData.map((player, index) => (
-                  <div key={index} className={`flex items-center justify-between p-4 rounded-xl border ${index === 0 ? 'bg-orange-500/10 border-orange-500/50' : 'bg-slate-800/80 border-slate-700'}`}>
+                  <div key={index} className={`flex items-center justify-between p-4 rounded-xl border ${index === 0 ? 'bg-orange-500/10 border-orange-500/50' : 'bg-slate-900/80 border-slate-700'}`}>
                     <div className="flex items-center gap-4">
                       <span className="text-2xl font-black text-slate-500">#{index + 1}</span>
                       <div className="text-left">
@@ -708,7 +725,7 @@ function App() {
                 ))
               )}
             </div>
-            <button onClick={() => setCurrentView('results')} className="w-full py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl transition-all">← Back to My Results</button>
+            <button onClick={() => setCurrentView('results')} className="w-full py-4 bg-slate-900 hover:bg-slate-800 font-bold rounded-xl transition-all">← Back to My Results</button>
           </div>
         )}
 
@@ -720,11 +737,11 @@ function App() {
               </button>
             )}
 
-            <div className="w-20 h-20 mb-4 flex items-center justify-center bg-slate-900/80 border border-slate-700 backdrop-blur-md rounded-full shadow-xl animate-pulse text-4xl">
+            <div className="w-20 h-20 mb-4 flex items-center justify-center bg-slate-950/70 border border-slate-700 backdrop-blur-md rounded-full shadow-xl animate-pulse text-4xl">
               {cookedData.emoji}
             </div>
             
-            <div ref={idCardRef} className={`w-[360px] h-[640px] bg-slate-900/90 border-2 border-slate-700/80 backdrop-blur-2xl rounded-3xl p-6 flex flex-col relative overflow-hidden mb-8 shadow-2xl`}>
+            <div ref={idCardRef} className={`w-[360px] h-[640px] bg-slate-950/80 border-2 border-slate-700/80 backdrop-blur-2xl rounded-3xl p-6 flex flex-col relative overflow-hidden mb-8 shadow-2xl`}>
               <div className="absolute -top-20 -right-20 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl"></div>
               <div className="flex justify-between items-start mb-6 z-10">
@@ -732,7 +749,7 @@ function App() {
                   <p className="text-[10px] text-slate-400 font-mono tracking-widest">OFFICIAL REPORT</p>
                   <h2 className="font-black text-xl tracking-tight text-white">{nickname ? nickname.toUpperCase() : 'COOKED'} ID</h2>
                 </div>
-                <div className="bg-slate-800/80 px-2 py-1 rounded text-[11px] font-mono text-slate-300 border border-slate-700 max-w-[150px] truncate">
+                <div className="bg-slate-900/80 px-2 py-1 rounded text-[11px] font-mono text-slate-300 border border-slate-700 max-w-[150px] truncate">
                   #{dispCode}
                 </div>
               </div>
@@ -740,10 +757,10 @@ function App() {
                 <div className="text-9xl font-black tracking-tighter drop-shadow-2xl animate-pulse" style={{ color: cookedData.color }}>{finalScore}</div>
                 <p className="text-2xl font-bold text-slate-500 -mt-2">%</p>
               </div>
-              <div className="z-10 bg-slate-950/70 p-4 rounded-2xl border border-slate-800/50 backdrop-blur-md mb-4 text-left">
+              <div className="z-10 bg-black/60 p-4 rounded-2xl border border-slate-800/50 backdrop-blur-md mb-4 text-left">
                 <h3 className="font-black text-xl mb-1" style={{ color: cookedData.color }}>{cookedData.category}</h3>
                 <p className="text-sm text-slate-300 font-medium mb-3">"{cookedData.text}"</p>
-                <div className="h-px w-full bg-slate-700/50 mb-3"></div>
+                <div className="h-px w-full bg-slate-800 mb-3"></div>
                 <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Personality</p>
                 <p className="text-sm font-bold text-white">{cookedData.personality}</p>
               </div>
@@ -754,30 +771,30 @@ function App() {
             </div>
 
             {/* Brain Battery & Danger Breakdown */}
-            <div className="w-full max-w-[360px] bg-slate-900/80 border border-slate-700 backdrop-blur-2xl rounded-2xl p-5 mb-6 text-left shadow-xl">
+            <div className="w-full max-w-[360px] bg-slate-950/70 border border-slate-700 backdrop-blur-2xl rounded-2xl p-5 mb-6 text-left shadow-xl">
               <h3 className="font-bold text-sm text-white mb-3 flex items-center justify-between">
                 <span>🔋 Brain Battery</span>
                 <span className="font-mono text-xs" style={{ color: cookedData.color }}>{Math.max(5, 100 - finalScore)}% Remaining</span>
               </h3>
-              <div className="w-full bg-slate-950 rounded-full h-4 p-0.5 border border-slate-800 mb-4">
+              <div className="w-full bg-black rounded-full h-4 p-0.5 border border-slate-900 mb-4">
                 <div className="h-3 rounded-full transition-all duration-1000" style={{ width: `${Math.max(5, 100 - finalScore)}%`, backgroundColor: cookedData.color }}></div>
               </div>
 
               <h3 className="font-bold text-sm text-white mb-2">⚡ Danger Breakdown</h3>
               <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                <div className="bg-black/60 p-2.5 rounded-xl border border-slate-900">
                   <p className="text-slate-400">Sleep</p>
                   <p className="font-bold text-white">{answers.sleep_hours ?? 6} hrs / night</p>
                 </div>
-                <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                <div className="bg-black/60 p-2.5 rounded-xl border border-slate-900">
                   <p className="text-slate-400">Screen Time</p>
                   <p className="font-bold text-white">{answers.screen_time ?? 5} hrs / day</p>
                 </div>
-                <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                <div className="bg-black/60 p-2.5 rounded-xl border border-slate-900">
                   <p className="text-slate-400">Attendance</p>
                   <p className="font-bold text-white">{answers.attendance ?? 75}%</p>
                 </div>
-                <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                <div className="bg-black/60 p-2.5 rounded-xl border border-slate-900">
                   <p className="text-slate-400">Assignments</p>
                   <p className="font-bold text-white">{answers.assignments ?? 3} pending</p>
                 </div>
@@ -785,29 +802,29 @@ function App() {
             </div>
 
             {/* AI Study Plan Rescue */}
-            <div className="w-full max-w-[360px] bg-slate-900/80 border border-purple-500/30 backdrop-blur-2xl rounded-2xl p-5 mb-6 text-left shadow-xl">
+            <div className="w-full max-w-[360px] bg-slate-950/70 border border-purple-500/30 backdrop-blur-2xl rounded-2xl p-5 mb-6 text-left shadow-xl">
               <h3 className="font-bold text-sm text-purple-400 mb-2">🚨 AI Study Plan Rescue</h3>
               <p className="text-xs text-slate-400 mb-3">Get a custom 24-hour emergency survival plan.</p>
               <button onClick={handleGenerateStudyPlan} disabled={isGeneratingPlan} className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow transition-all">
                 {isGeneratingPlan ? 'Building Rescue Plan...' : '✨ Generate Survival Plan'}
               </button>
               {(isGeneratingPlan || studyPlan) && (
-                <div className="mt-3 bg-slate-950/90 p-3 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed whitespace-pre-line">
+                <div className="mt-3 bg-black/80 p-3 rounded-xl border border-slate-900 text-xs font-mono text-slate-300 leading-relaxed whitespace-pre-line">
                   {isGeneratingPlan ? "Prof. Doom is calculating your redemption..." : studyPlan}
                 </div>
               )}
             </div>
 
             {/* Roast My Schedule */}
-            <div className="w-full max-w-[360px] bg-slate-900/80 border border-orange-500/30 backdrop-blur-2xl rounded-2xl p-5 mb-6 text-left shadow-xl">
+            <div className="w-full max-w-[360px] bg-slate-950/70 border border-orange-500/30 backdrop-blur-2xl rounded-2xl p-5 mb-6 text-left shadow-xl">
               <h3 className="font-bold text-sm text-orange-400 mb-2">📸 Roast My Schedule</h3>
               <p className="text-xs text-slate-400 mb-3">Upload your timetable or calendar screenshot.</p>
-              <label className="block w-full py-3 bg-slate-800/80 hover:bg-slate-700 text-center font-bold rounded-xl text-xs border border-slate-600 cursor-pointer transition-all">
+              <label className="block w-full py-3 bg-slate-900 hover:bg-slate-800 text-center font-bold rounded-xl text-xs border border-slate-700 cursor-pointer transition-all">
                 {isAnalyzingSchedule ? 'Analyzing Screenshot...' : '📁 Upload Schedule Image'}
                 <input type="file" accept="image/*" onChange={handleScheduleUpload} className="hidden" />
               </label>
               {(isAnalyzingSchedule || scheduleRoast) && (
-                <div className="mt-3 bg-slate-950/90 p-3 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed whitespace-pre-line">
+                <div className="mt-3 bg-black/80 p-3 rounded-xl border border-slate-900 text-xs font-mono text-slate-300 leading-relaxed whitespace-pre-line">
                   {isAnalyzingSchedule ? "Inspecting your chaotic timetable..." : scheduleRoast}
                 </div>
               )}
@@ -825,7 +842,7 @@ function App() {
                 </button>
               </div>
               {panicExcuse && (
-                <div className="bg-slate-950/90 p-3 rounded-xl border border-red-500/40 text-xs font-mono text-red-200 mt-2 leading-relaxed">
+                <div className="bg-black/80 p-3 rounded-xl border border-red-500/40 text-xs font-mono text-red-200 mt-2 leading-relaxed">
                   "{panicExcuse}"
                 </div>
               )}
@@ -834,17 +851,17 @@ function App() {
             <div className="w-full max-w-[360px] flex flex-col gap-3">
               <button onClick={handleDownload} className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all">📸 DOWNLOAD ID CARD (.PNG)</button>
               
-              <button onClick={handlePublishGlobal} disabled={isSubmittingGlobal || globalSubmitted} className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-800 text-white font-bold rounded-xl shadow transition-all">
+              <button onClick={handlePublishGlobal} disabled={isSubmittingGlobal || globalSubmitted} className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-900 text-white font-bold rounded-xl shadow transition-all">
                 {isSubmittingGlobal ? 'Publishing...' : globalSubmitted ? '✓ Published to Global HOF' : '🌍 Publish to Global Hall of Fame'}
               </button>
 
               <div className="flex gap-3">
-                <button onClick={() => fetchContent('roast')} className="flex-1 py-3 bg-slate-800/80 backdrop-blur-md hover:bg-slate-700 font-bold rounded-xl border border-slate-600 text-red-400">🔥 ROAST</button>
-                <button onClick={() => fetchContent('save')} className="flex-1 py-3 bg-slate-800/80 backdrop-blur-md hover:bg-slate-700 font-bold rounded-xl border border-slate-600 text-blue-400">🆘 SAVE</button>
+                <button onClick={() => fetchContent('roast')} className="flex-1 py-3 bg-slate-900/80 backdrop-blur-md hover:bg-slate-800 font-bold rounded-xl border border-slate-700 text-red-400">🔥 ROAST</button>
+                <button onClick={() => fetchContent('save')} className="flex-1 py-3 bg-slate-900/80 backdrop-blur-md hover:bg-slate-800 font-bold rounded-xl border border-slate-700 text-blue-400">🆘 SAVE</button>
               </div>
 
               {(isGenerating || generatedContent) && (
-                <div className="bg-slate-900/85 backdrop-blur-xl p-5 rounded-2xl border border-slate-700 text-left mt-2">
+                <div className="bg-slate-950/85 backdrop-blur-xl p-5 rounded-2xl border border-slate-800 text-left mt-2">
                   {isGenerating ? (
                     <div className="flex items-center gap-3 text-slate-400 font-mono text-sm animate-pulse">
                       <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
@@ -860,8 +877,8 @@ function App() {
               )}
 
               {/* Chatbot Widget */}
-              <div className="bg-slate-900/85 border border-slate-700 backdrop-blur-2xl rounded-2xl p-4 mt-6 text-left shadow-xl">
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800">
+              <div className="bg-slate-950/85 border border-slate-800 backdrop-blur-2xl rounded-2xl p-4 mt-6 text-left shadow-xl">
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-900">
                   <span className="text-xl">🤖</span>
                   <div>
                     <h3 className="font-bold text-sm text-white">Chat with Prof. Doom</h3>
@@ -871,28 +888,28 @@ function App() {
 
                 <div className="h-48 overflow-y-auto flex flex-col gap-2 mb-3 pr-3 text-xs font-mono">
                   {chatMessages.map((msg, idx) => (
-                    <div key={idx} className={`p-3 rounded-2xl max-w-[80%] leading-relaxed break-words ${msg.sender === 'bot' ? 'bg-slate-800 text-slate-200 self-start border border-slate-700' : 'bg-orange-600 text-white self-end mr-1'}`}>
+                    <div key={idx} className={`p-3 rounded-2xl max-w-[80%] leading-relaxed break-words ${msg.sender === 'bot' ? 'bg-slate-900 text-slate-200 self-start border border-slate-800' : 'bg-orange-600 text-white self-end mr-1'}`}>
                       {msg.text}
                     </div>
                   ))}
                   {isChatting && (
-                    <div className="bg-slate-800 text-slate-400 p-2 rounded-xl self-start text-[10px] animate-pulse">
+                    <div className="bg-slate-900 text-slate-400 p-2 rounded-xl self-start text-[10px] animate-pulse">
                       Prof. Doom is typing...
                     </div>
                   )}
                 </div>
 
                 <div className="flex flex-wrap gap-1 mb-3">
-                  <button onClick={() => handleSendMessage("I have an exam in 2 hours")} className="bg-slate-800 hover:bg-slate-700 text-[10px] text-orange-400 px-2 py-1 rounded-lg border border-slate-700">🚨 Exam in 2 hrs</button>
-                  <button onClick={() => handleSendMessage("How do I fix my sleep schedule?")} className="bg-slate-800 hover:bg-slate-700 text-[10px] text-purple-400 px-2 py-1 rounded-lg border border-slate-700">🌙 Sleep advice</button>
-                  <button onClick={() => handleSendMessage("Write me an excuse email for class")} className="bg-slate-800 hover:bg-slate-700 text-[10px] text-green-400 px-2 py-1 rounded-lg border border-slate-700">✉️ Fake excuse</button>
+                  <button onClick={() => handleSendMessage("I have an exam in 2 hours")} className="bg-slate-900 hover:bg-slate-800 text-[10px] text-orange-400 px-2 py-1 rounded-lg border border-slate-800">🚨 Exam in 2 hrs</button>
+                  <button onClick={() => handleSendMessage("How do I fix my sleep schedule?")} className="bg-slate-900 hover:bg-slate-800 text-[10px] text-purple-400 px-2 py-1 rounded-lg border border-slate-800">🌙 Sleep advice</button>
+                  <button onClick={() => handleSendMessage("Write me an excuse email for class")} className="bg-slate-900 hover:bg-slate-800 text-[10px] text-green-400 px-2 py-1 rounded-lg border border-slate-800">✉️ Fake excuse</button>
                 </div>
 
                 <div className="flex gap-2">
                   <input 
                     type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder="Ask Prof. Doom anything..." 
-                    className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"
+                    className="flex-1 bg-black border border-slate-900 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"
                   />
                   <button onClick={() => handleSendMessage()} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all">Send</button>
                 </div>
@@ -904,8 +921,8 @@ function App() {
         )}
 
         {currentView === 'quiz' && (
-          <div className="w-full max-w-xl bg-slate-900/80 border border-slate-700 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl">
-            <div className="w-full bg-slate-950 rounded-full h-2 mb-6"><div className="bg-orange-500 h-2 rounded-full transition-all duration-500 ease-out" style={{ width: `${((currentStep + 1) / QUESTIONS.length) * 100}%` }}></div></div>
+          <div className="w-full max-w-xl bg-slate-950/70 border border-slate-700 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl">
+            <div className="w-full bg-black rounded-full h-2 mb-6"><div className="bg-orange-500 h-2 rounded-full transition-all duration-500 ease-out" style={{ width: `${((currentStep + 1) / QUESTIONS.length) * 100}%` }}></div></div>
             <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center leading-tight">{QUESTIONS[currentStep].label}</h2>
             <div className="text-6xl md:text-7xl font-extrabold text-orange-400 text-center mb-4 transition-all duration-200 ease-in-out">
               {answers[QUESTIONS[currentStep].id] !== undefined ? answers[QUESTIONS[currentStep].id] : QUESTIONS[currentStep].defaultValue}
@@ -917,7 +934,7 @@ function App() {
               value={answers[QUESTIONS[currentStep].id] !== undefined ? answers[QUESTIONS[currentStep].id] : QUESTIONS[currentStep].defaultValue} 
               aria-label={QUESTIONS[currentStep].label}
               onChange={(e) => handleAnswerChange(QUESTIONS[currentStep].id, e.target.value)} 
-              className="w-full h-3 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-orange-500 mb-10 hover:bg-slate-800 transition-colors" 
+              className="w-full h-3 bg-black rounded-lg appearance-none cursor-pointer accent-orange-500 mb-10 hover:bg-slate-900 transition-colors" 
             />
             <div className="flex justify-between mt-6">
               <button onClick={handleBack} className="px-4 py-2 text-slate-400 hover:text-white font-semibold transition-colors">← Back</button>
