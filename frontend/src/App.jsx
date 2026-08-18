@@ -64,12 +64,12 @@ const playSound = (type) => {
 };
 
 function getCookedData(score) {
-  if (score <= 20) return { category: "🥗 FRESH", text: "Suspiciously responsible.", personality: "The Surprisingly Responsible One", color: "#4ade80", lottieUrl: "https://lottie.host/embed/8157e100-33b6-4b82-990a-e8d1a10d9f2e/5vKx9Fh602.lottie" }; // happy celebration
-  if (score <= 40) return { category: "🍳 SLIGHTLY TOASTED", text: "Questionable decisions.", personality: "The Weekend Warrior", color: "#facc15", lottieUrl: "https://lottie.host/embed/8157e100-33b6-4b82-990a-e8d1a10d9f2e/5vKx9Fh602.lottie" };
-  if (score <= 60) return { category: "🔥 GETTING COOKED", text: "The situation is developing.", personality: "The Chaos Student", color: "#fb923c", lottieUrl: "https://lottie.host/embed/742b78dc-2cb6-470b-93da-b5700b0c6df6/W6W7tYg17d.lottie" }; // stressed
-  if (score <= 80) return { category: "🍗 WELL DONE", text: "Academic recovery difficult.", personality: "The Professional Procrastinator", color: "#c2410c", lottieUrl: "https://lottie.host/embed/742b78dc-2cb6-470b-93da-b5700b0c6df6/W6W7tYg17d.lottie" };
-  if (score <= 95) return { category: "💀 ABSOLUTELY COOKED", text: "Negotiating with destiny.", personality: "The Last-Minute Warrior", color: "#ef4444", lottieUrl: "https://lottie.host/embed/742b78dc-2cb6-470b-93da-b5700b0c6df6/W6W7tYg17d.lottie" }; // panicking
-  return { category: "☢️ BEYOND SAVING", text: "Contact your future self.", personality: "The Sleep-Deprived Zombie", color: "#b91c1c", lottieUrl: "https://lottie.host/embed/742b78dc-2cb6-470b-93da-b5700b0c6df6/W6W7tYg17d.lottie" };
+  if (score <= 20) return { category: "🥗 FRESH", text: "Suspiciously responsible.", personality: "The Surprisingly Responsible One", color: "#4ade80", emoji: "🌱" };
+  if (score <= 40) return { category: "🍳 SLIGHTLY TOASTED", text: "Questionable decisions.", personality: "The Weekend Warrior", color: "#facc15", emoji: "🍳" };
+  if (score <= 60) return { category: "🔥 GETTING COOKED", text: "The situation is developing.", personality: "The Chaos Student", color: "#fb923c", emoji: "🔥" };
+  if (score <= 80) return { category: "🍗 WELL DONE", text: "Academic recovery difficult.", personality: "The Professional Procrastinator", color: "#c2410c", emoji: "🍗" };
+  if (score <= 95) return { category: "💀 ABSOLUTELY COOKED", text: "Negotiating with destiny.", personality: "The Last-Minute Warrior", color: "#ef4444", emoji: "💀" };
+  return { category: "☢️ BEYOND SAVING", text: "Contact your future self.", personality: "The Sleep-Deprived Zombie", color: "#b91c1c", emoji: "☢️" };
 }
 
 function App() {
@@ -87,24 +87,19 @@ function App() {
   const [roomCode, setRoomCode] = useState(null);
   const [leaderboardData, setLeaderboardData] = useState([]);
   
-  // Global Hall of Fame State
   const [globalLeaderboard, setGlobalLeaderboard] = useState([]);
   const [isSubmittingGlobal, setIsSubmittingGlobal] = useState(false);
   const [globalSubmitted, setGlobalSubmitted] = useState(false);
 
-  // Panic Button & Toast State
   const [panicExcuse, setPanicExcuse] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Multimodal Schedule Roast State
   const [scheduleRoast, setScheduleRoast] = useState(null);
   const [isAnalyzingSchedule, setIsAnalyzingSchedule] = useState(false);
 
-  // Study Plan Rescue State
   const [studyPlan, setStudyPlan] = useState(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
 
-  // Easter Egg State
   const [matrixActive, setMatrixActive] = useState(false);
   const konamiRef = useRef([]);
   const secretCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
@@ -122,14 +117,12 @@ function App() {
   const [generatedContent, setGeneratedContent] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Chatbot State
   const [chatMessages, setChatMessages] = useState([
     { sender: 'bot', text: "Yo! I'm Prof. Doom, your Gen-Z AI burnout therapist powered by Gemini. Ask me anything before your GPA flatlines." }
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isChatting, setIsChatting] = useState(false);
 
-  // Konami Code Listener
   useEffect(() => {
     const handleKeyDown = (e) => {
       konamiRef.current.push(e.key);
@@ -144,7 +137,6 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Simulated Push Notification
   useEffect(() => {
     const roastTimer = setTimeout(() => {
       setToastMessage("🔥 Reminder: Close Instagram and touch some grass before your GPA flatlines.");
@@ -512,8 +504,6 @@ function App() {
     image.src = blobURL;
   };
 
-  // --- VIEWS ---
-
   if (matrixActive) {
     return (
       <div className="min-h-screen bg-black text-green-500 font-mono flex flex-col items-center justify-center p-8 text-center overflow-hidden animate-pulse">
@@ -542,12 +532,9 @@ function App() {
           </div>
         )}
 
-        {/* Animated Cartoon Buddy on Landing */}
-        <div className="w-32 h-32 mb-2">
-          <DotLottieReact
-            src="https://lottie.host/embed/8157e100-33b6-4b82-990a-e8d1a10d9f2e/5vKx9Fh602.lottie"
-            loop autoplay
-          />
+        {/* Reliable Animated Cartoon Badge */}
+        <div className="w-24 h-24 mb-2 flex items-center justify-center bg-slate-900 border border-slate-700 rounded-full shadow-lg animate-bounce text-4xl">
+          👋🤖
         </div>
 
         <h1 className="text-6xl md:text-8xl font-black mb-2 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 text-transparent bg-clip-text">CookedAI</h1>
@@ -742,9 +729,9 @@ function App() {
           </button>
         )}
 
-        {/* Animated Cartoon Character reacting to score */}
-        <div className="w-28 h-28 mb-4">
-          <DotLottieReact src={cookedData.lottieUrl} loop autoplay />
+        {/* Animated Emoji Cartoon Badge Reacting to Score */}
+        <div className="w-20 h-20 mb-4 flex items-center justify-center bg-slate-900 border border-slate-700 rounded-full shadow-xl animate-pulse text-4xl">
+          {cookedData.emoji}
         </div>
         
         <div ref={idCardRef} className={`w-[360px] h-[640px] bg-slate-900 border-2 border-slate-700 rounded-3xl p-6 flex flex-col relative overflow-hidden mb-8 shadow-2xl`}>
