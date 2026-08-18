@@ -25,7 +25,7 @@ const LOADING_MESSAGES = [
   "Running highly questionable mathematics..."
 ];
 
-// --- PHASE 20: WEB AUDIO API SYNTHESIZER ---
+// Web Audio API Sound Synthesizer
 const playSound = (type) => {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -86,16 +86,24 @@ function App() {
   const [roomCode, setRoomCode] = useState(null);
   const [leaderboardData, setLeaderboardData] = useState([]);
   
-  // --- PHASE 19: GLOBAL HALL OF FAME STATE ---
+  // Global Hall of Fame State
   const [globalLeaderboard, setGlobalLeaderboard] = useState([]);
   const [isSubmittingGlobal, setIsSubmittingGlobal] = useState(false);
   const [globalSubmitted, setGlobalSubmitted] = useState(false);
 
-  // --- PHASE 18: PANIC BUTTON & TOAST STATE ---
+  // Panic Button & Toast State
   const [panicExcuse, setPanicExcuse] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // --- PHASE 20: EASTER EGG STATE ---
+  // Multimodal Schedule Roast State
+  const [scheduleRoast, setScheduleRoast] = useState(null);
+  const [isAnalyzingSchedule, setIsAnalyzingSchedule] = useState(false);
+
+  // Study Plan Rescue State
+  const [studyPlan, setStudyPlan] = useState(null);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+
+  // Easter Egg State
   const [matrixActive, setMatrixActive] = useState(false);
   const konamiRef = useRef([]);
   const secretCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
@@ -124,9 +132,7 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       konamiRef.current.push(e.key);
-      if (konamiRef.current.length > secretCode.length) {
-        konamiRef.current.shift();
-      }
+      if (konamiRef.current.length > secretCode.length) konamiRef.current.shift();
       if (JSON.stringify(konamiRef.current) === JSON.stringify(secretCode)) {
         playSound('alarm');
         setMatrixActive(true);
@@ -137,7 +143,7 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Simulated Push Notification Roast Reminder
+  // Simulated Push Notification
   useEffect(() => {
     const roastTimer = setTimeout(() => {
       setToastMessage("🔥 Reminder: Close Instagram and touch some grass before your GPA flatlines.");
@@ -187,10 +193,7 @@ function App() {
 
   const handleSaveProfile = () => {
     playSound('click');
-    if (!nickname.trim()) {
-      setError("Please enter your name or nickname!");
-      return;
-    }
+    if (!nickname.trim()) { setError("Please enter your name or nickname!"); return; }
     setError(null);
     setProfileSaved(true);
   };
@@ -243,10 +246,8 @@ function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: action,
-          score: finalScore,
-          screen_time: answers.screen_time ?? 5,
-          assignments: answers.assignments ?? 3
+          action: action, score: finalScore,
+          screen_time: answers.screen_time ?? 5, assignments: answers.assignments ?? 3
         })
       });
       const data = await response.json();
@@ -257,30 +258,88 @@ function App() {
     setIsGenerating(false);
   };
 
-  // --- PHASE 19: SUBMIT TO GLOBAL HALL OF FAME ---
+  // NEW FEATURE 1: AI Study Plan Rescue Generator
+  const handleGenerateStudyPlan = async () => {
+    playSound('click');
+    setIsGeneratingPlan(true);
+    setStudyPlan(null);
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("Missing Gemini API Key");
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are Prof. Doom, a sarcastic Gen-Z academic advisor. The student ${nickname || 'Student'} has a burnout score of ${finalScore}%, sleeps ${answers.sleep_hours} hours, has ${answers.assignments} assignments pending, and ${answers.attendance}% attendance. Generate a strict, highly urgent, and hilarious 24-hour emergency survival study plan to rescue their GPA before it flatlines. Use bullet points.`
+            }]
+          }]
+        })
+      });
+      const data = await response.json();
+      const planText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Drink iced coffee and pray.";
+      setStudyPlan(planText);
+    } catch (e) {
+      setStudyPlan("AI rescue plan unavailable. Just lock in bestie.");
+    }
+    setIsGeneratingPlan(false);
+  };
+
+  // NEW FEATURE 2: Roast My Schedule (Multimodal Vision Upload)
+  const handleScheduleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    playSound('glitch');
+    setIsAnalyzingSchedule(true);
+    setScheduleRoast(null);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const base64String = reader.result.split(',')[1];
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        if (!apiKey) throw new Error("Missing Gemini API Key");
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: `You are Prof. Doom, a brutal Gen-Z professor. Analyze this timetable/calendar screenshot and ruthlessly roast how overbooked, chaotic, or disastrous this student's schedule looks.` },
+                {
+                  inline_data: {
+                    mime_type: file.type || "image/jpeg",
+                    data: base64String
+                  }
+                }
+              ]
+            }]
+          })
+        });
+
+        const data = await response.json();
+        const roastText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Your schedule gave my compiler a panic attack.";
+        setScheduleRoast(roastText);
+      } catch (err) {
+        setScheduleRoast("Could not parse schedule image. Your calendar is too chaotic even for AI.");
+      }
+      setIsAnalyzingSchedule(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handlePublishGlobal = async () => {
     playSound('click');
     setIsSubmittingGlobal(true);
     try {
-      // Using a free public JSON storage bin for demonstration
       const newEntry = {
-        nickname: nickname || 'Anonymous',
-        studentCode: studentCode || 'BWU/ABC/XX/XXX',
-        score: finalScore,
-        category: cookedData.category,
-        timestamp: new Date().toISOString()
+        nickname: nickname || 'Anonymous', studentCode: studentCode || 'BWU/ABC/XX/XXX',
+        score: finalScore, category: cookedData.category, timestamp: new Date().toISOString()
       };
-
-      const res = await fetch('https://api.jsonbin.io/v3/b', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': '$2a$10$1234567890abcdef...' // mock or placeholder public bin
-        },
-        body: JSON.stringify(newEntry)
-      }).catch(() => null);
-
-      // Fallback local state pool if bin key is restricted
       const existing = JSON.parse(localStorage.getItem('global_hof')) || [];
       existing.unshift(newEntry);
       localStorage.setItem('global_hof', JSON.stringify(existing));
@@ -296,28 +355,23 @@ function App() {
     playSound('click');
     const existing = JSON.parse(localStorage.getItem('global_hof')) || [
       { nickname: "Tanuj Saha", studentCode: "BWU/BTA/23/456", score: 94, category: "💀 ABSOLUTELY COOKED" },
-      { nickname: "Alex Rivera", studentCode: "BWU/CS/23/102", score: 88, category: "💀 ABSOLUTELY COOKED" },
-      { nickname: "Priya Sharma", studentCode: "BWU/AI/23/789", score: 15, category: "🥗 FRESH" }
+      { nickname: "Alex Rivera", studentCode: "BWU/CS/23/102", score: 88, category: "💀 ABSOLUTELY COOKED" }
     ];
     setGlobalLeaderboard(existing);
     setCurrentView('global_hof');
   };
 
-  // --- PHASE 18: PANIC BUTTON EXCUSE GENERATOR ---
   const handlePanicButton = () => {
     playSound('alarm');
     const excuses = [
       "My cat walked across my keyboard and permanently deleted my repository.",
       "My Wi-Fi router was possessed by a Victorian ghost during a thunderstorm.",
       "I accidentally ingested too much iced coffee and transcended space-time.",
-      "My alarm clock suffered an existential crisis and refused to ring.",
-      "An unexpected family emergency involving my pet goldfish required immediate psychological support."
+      "My alarm clock suffered an existential crisis and refused to ring."
     ];
-    const randomExcuse = excuses[Math.floor(Math.random() * excuses.length)];
-    setPanicExcuse(randomExcuse);
+    setPanicExcuse(excuses[Math.floor(Math.random() * excuses.length)]);
   };
 
-  // Real-time Gemini Chat Handler
   const handleSendMessage = async (customText) => {
     playSound('click');
     const textToSend = customText || chatInput;
@@ -330,10 +384,7 @@ function App() {
 
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) throw new Error("VITE_GEMINI_API_KEY is missing on Vercel!");
-
-      const randomMoods = ["Be extra savage", "Be unhinged", "Give chaotic advice", "Keep it brutal and witty", "Act like an exhausted professor"];
-      const chosenMood = randomMoods[Math.floor(Math.random() * randomMoods.length)];
+      if (!apiKey) throw new Error("Missing Gemini API Key");
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
         method: "POST",
@@ -341,15 +392,13 @@ function App() {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are Prof. Doom, a sarcastic Gen-Z burnout therapist. Mood: ${chosenMood}. User name: ${nickname || 'Student'}, Burnout score: ${finalScore}%. Answer directly with Gen-Z slang and humor. User question: "${textToSend}"`
+              text: `You are Prof. Doom, a sarcastic Gen-Z burnout therapist. User: ${nickname || 'Student'}, Score: ${finalScore}%. Answer directly using Gen-Z slang and humor. User question: "${textToSend}"`
             }]
           }]
         })
       });
 
       const data = await response.json();
-      if (data.error) throw new Error(data.error.message || "Gemini API Error");
-
       const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "My brain lagged. Try again bestie.";
       setChatMessages(prev => [...prev, { sender: 'bot', text: botReply }]);
     } catch (error) {
@@ -365,7 +414,7 @@ function App() {
   };
 
   const handleBack = () => { playSound('click'); currentStep > 0 ? setCurrentStep(prev => prev - 1) : setCurrentView('landing'); };
-  const handleRestart = () => { playSound('click'); setAnswers({}); setCurrentStep(0); setGeneratedContent(null); setPanicExcuse(null); setCurrentView('landing'); };
+  const handleRestart = () => { playSound('click'); setAnswers({}); setCurrentStep(0); setGeneratedContent(null); setPanicExcuse(null); setStudyPlan(null); setScheduleRoast(null); setCurrentView('landing'); };
   const handleStart = () => {
     playSound('click');
     if (!profileSaved) { setError("Please click 'DONE' to save your profile first!"); return; }
@@ -529,7 +578,6 @@ function App() {
           <button onClick={() => { if(!profileSaved){setError("Save profile with DONE first!"); return;} setCurrentView('multiplayer_setup'); }} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-2xl text-lg border border-slate-600 transform hover:scale-105 transition-all">👥 BATTLE</button>
         </div>
 
-        {/* --- PHASE 19: GLOBAL HALL OF FAME BUTTON --- */}
         <button onClick={fetchGlobalHallOfFame} className="w-full max-w-md py-4 bg-purple-600 hover:bg-purple-700 font-bold rounded-2xl text-lg shadow-lg mb-4 transition-all">
           🌍 Global Hall of Fame
         </button>
@@ -715,7 +763,7 @@ function App() {
           </div>
         </div>
 
-        {/* --- PHASE 17: BRAIN BATTERY & DANGER RADAR GAUGE --- */}
+        {/* Brain Battery & Danger Breakdown */}
         <div className="w-full max-w-[360px] bg-slate-900 border border-slate-700 rounded-2xl p-5 mb-6 text-left shadow-xl">
           <h3 className="font-bold text-sm text-white mb-3 flex items-center justify-between">
             <span>🔋 Brain Battery</span>
@@ -746,7 +794,36 @@ function App() {
           </div>
         </div>
 
-        {/* --- PHASE 18: PANIC BUTTON WIDGET --- */}
+        {/* NEW FEATURE: AI Study Plan Rescue */}
+        <div className="w-full max-w-[360px] bg-slate-900 border border-purple-500/30 rounded-2xl p-5 mb-6 text-left shadow-xl">
+          <h3 className="font-bold text-sm text-purple-400 mb-2">🚨 AI Study Plan Rescue</h3>
+          <p className="text-xs text-slate-400 mb-3">Get a custom 24-hour emergency survival plan.</p>
+          <button onClick={handleGenerateStudyPlan} disabled={isGeneratingPlan} className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow transition-all">
+            {isGeneratingPlan ? 'Building Rescue Plan...' : '✨ Generate Survival Plan'}
+          </button>
+          {(isGeneratingPlan || studyPlan) && (
+            <div className="mt-3 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed whitespace-pre-line">
+              {isGeneratingPlan ? "Prof. Doom is calculating your redemption..." : studyPlan}
+            </div>
+          )}
+        </div>
+
+        {/* NEW FEATURE: Roast My Schedule (Multimodal OCR) */}
+        <div className="w-full max-w-[360px] bg-slate-900 border border-orange-500/30 rounded-2xl p-5 mb-6 text-left shadow-xl">
+          <h3 className="font-bold text-sm text-orange-400 mb-2">📸 Roast My Schedule</h3>
+          <p className="text-xs text-slate-400 mb-3">Upload your timetable or calendar screenshot.</p>
+          <label className="block w-full py-3 bg-slate-800 hover:bg-slate-700 text-center font-bold rounded-xl text-xs border border-slate-600 cursor-pointer transition-all">
+            {isAnalyzingSchedule ? 'Analyzing Screenshot...' : '📁 Upload Schedule Image'}
+            <input type="file" accept="image/*" onChange={handleScheduleUpload} className="hidden" />
+          </label>
+          {(isAnalyzingSchedule || scheduleRoast) && (
+            <div className="mt-3 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed whitespace-pre-line">
+              {isAnalyzingSchedule ? "Inspecting your chaotic timetable..." : scheduleRoast}
+            </div>
+          )}
+        </div>
+
+        {/* Emergency Panic Button */}
         <div className="w-full max-w-[360px] bg-red-950/20 border border-red-500/30 rounded-2xl p-5 mb-6 text-left shadow-xl">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -767,7 +844,6 @@ function App() {
         <div className="w-full max-w-[360px] flex flex-col gap-3">
           <button onClick={handleDownload} className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all">📸 DOWNLOAD ID CARD (.PNG)</button>
           
-          {/* --- PHASE 19: PUBLISH TO GLOBAL HALL OF FAME BUTTON --- */}
           <button onClick={handlePublishGlobal} disabled={isSubmittingGlobal || globalSubmitted} className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-800 text-white font-bold rounded-xl shadow transition-all">
             {isSubmittingGlobal ? 'Publishing...' : globalSubmitted ? '✓ Published to Global HOF' : '🌍 Publish to Global Hall of Fame'}
           </button>
