@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -63,12 +64,12 @@ const playSound = (type) => {
 };
 
 function getCookedData(score) {
-  if (score <= 20) return { category: "🥗 FRESH", text: "Suspiciously responsible.", personality: "The Surprisingly Responsible One", color: "#4ade80" };
-  if (score <= 40) return { category: "🍳 SLIGHTLY TOASTED", text: "Questionable decisions.", personality: "The Weekend Warrior", color: "#facc15" };
-  if (score <= 60) return { category: "🔥 GETTING COOKED", text: "The situation is developing.", personality: "The Chaos Student", color: "#fb923c" };
-  if (score <= 80) return { category: "🍗 WELL DONE", text: "Academic recovery difficult.", personality: "The Professional Procrastinator", color: "#c2410c" };
-  if (score <= 95) return { category: "💀 ABSOLUTELY COOKED", text: "Negotiating with destiny.", personality: "The Last-Minute Warrior", color: "#ef4444" };
-  return { category: "☢️ BEYOND SAVING", text: "Contact your future self.", personality: "The Sleep-Deprived Zombie", color: "#b91c1c" };
+  if (score <= 20) return { category: "🥗 FRESH", text: "Suspiciously responsible.", personality: "The Surprisingly Responsible One", color: "#4ade80", lottieUrl: "https://lottie.host/embed/8157e100-33b6-4b82-990a-e8d1a10d9f2e/5vKx9Fh602.lottie" }; // happy celebration
+  if (score <= 40) return { category: "🍳 SLIGHTLY TOASTED", text: "Questionable decisions.", personality: "The Weekend Warrior", color: "#facc15", lottieUrl: "https://lottie.host/embed/8157e100-33b6-4b82-990a-e8d1a10d9f2e/5vKx9Fh602.lottie" };
+  if (score <= 60) return { category: "🔥 GETTING COOKED", text: "The situation is developing.", personality: "The Chaos Student", color: "#fb923c", lottieUrl: "https://lottie.host/embed/742b78dc-2cb6-470b-93da-b5700b0c6df6/W6W7tYg17d.lottie" }; // stressed
+  if (score <= 80) return { category: "🍗 WELL DONE", text: "Academic recovery difficult.", personality: "The Professional Procrastinator", color: "#c2410c", lottieUrl: "https://lottie.host/embed/742b78dc-2cb6-470b-93da-b5700b0c6df6/W6W7tYg17d.lottie" };
+  if (score <= 95) return { category: "💀 ABSOLUTELY COOKED", text: "Negotiating with destiny.", personality: "The Last-Minute Warrior", color: "#ef4444", lottieUrl: "https://lottie.host/embed/742b78dc-2cb6-470b-93da-b5700b0c6df6/W6W7tYg17d.lottie" }; // panicking
+  return { category: "☢️ BEYOND SAVING", text: "Contact your future self.", personality: "The Sleep-Deprived Zombie", color: "#b91c1c", lottieUrl: "https://lottie.host/embed/742b78dc-2cb6-470b-93da-b5700b0c6df6/W6W7tYg17d.lottie" };
 }
 
 function App() {
@@ -258,7 +259,6 @@ function App() {
     setIsGenerating(false);
   };
 
-  // NEW FEATURE 1: AI Study Plan Rescue Generator
   const handleGenerateStudyPlan = async () => {
     playSound('click');
     setIsGeneratingPlan(true);
@@ -287,7 +287,6 @@ function App() {
     setIsGeneratingPlan(false);
   };
 
-  // NEW FEATURE 2: Roast My Schedule (Multimodal Vision Upload)
   const handleScheduleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -542,7 +541,16 @@ function App() {
             ⚠️ {error}
           </div>
         )}
-        <h1 className="text-6xl md:text-8xl font-black mb-2 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 text-transparent bg-clip-text mt-8">CookedAI</h1>
+
+        {/* Animated Cartoon Buddy on Landing */}
+        <div className="w-32 h-32 mb-2">
+          <DotLottieReact
+            src="https://lottie.host/embed/8157e100-33b6-4b82-990a-e8d1a10d9f2e/5vKx9Fh602.lottie"
+            loop autoplay
+          />
+        </div>
+
+        <h1 className="text-6xl md:text-8xl font-black mb-2 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 text-transparent bg-clip-text">CookedAI</h1>
         <p className="text-xl md:text-2xl text-slate-400 mb-8 font-medium">Find out before your professor does.</p>
         
         <div className="w-full max-w-md bg-slate-900 border border-slate-700 p-6 rounded-3xl shadow-xl mb-6 text-left relative">
@@ -733,6 +741,11 @@ function App() {
             🏆 VIEW ROOM LEADERBOARD
           </button>
         )}
+
+        {/* Animated Cartoon Character reacting to score */}
+        <div className="w-28 h-28 mb-4">
+          <DotLottieReact src={cookedData.lottieUrl} loop autoplay />
+        </div>
         
         <div ref={idCardRef} className={`w-[360px] h-[640px] bg-slate-900 border-2 border-slate-700 rounded-3xl p-6 flex flex-col relative overflow-hidden mb-8 shadow-2xl`}>
           <div className="absolute -top-20 -right-20 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"></div>
@@ -794,7 +807,7 @@ function App() {
           </div>
         </div>
 
-        {/* NEW FEATURE: AI Study Plan Rescue */}
+        {/* AI Study Plan Rescue */}
         <div className="w-full max-w-[360px] bg-slate-900 border border-purple-500/30 rounded-2xl p-5 mb-6 text-left shadow-xl">
           <h3 className="font-bold text-sm text-purple-400 mb-2">🚨 AI Study Plan Rescue</h3>
           <p className="text-xs text-slate-400 mb-3">Get a custom 24-hour emergency survival plan.</p>
@@ -808,7 +821,7 @@ function App() {
           )}
         </div>
 
-        {/* NEW FEATURE: Roast My Schedule (Multimodal OCR) */}
+        {/* Roast My Schedule (Multimodal OCR) */}
         <div className="w-full max-w-[360px] bg-slate-900 border border-orange-500/30 rounded-2xl p-5 mb-6 text-left shadow-xl">
           <h3 className="font-bold text-sm text-orange-400 mb-2">📸 Roast My Schedule</h3>
           <p className="text-xs text-slate-400 mb-3">Upload your timetable or calendar screenshot.</p>
