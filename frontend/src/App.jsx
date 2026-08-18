@@ -517,48 +517,45 @@ function App() {
     );
   }
 
+  // Dynamic Ambient Glow Color based on Score or Default
   const glowColor = cookedData ? cookedData.color : '#f97316';
 
   return (
     <div className="min-h-screen text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden bg-slate-950">
       
-      {/* --- ALTERNATING FULL-SCREEN MESH GRADIENT & AMBIENT GLOW ANIMATIONS --- */}
-      <style>{`
-        @keyframes meshDrift1 {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(35vw, 25vh) scale(1.3); }
-          66% { transform: translate(-20vw, 35vh) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
+      {/* --- CSS Animations for the Mesh Gradient --- */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes float-1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30vw, 20vh) scale(1.3); }
+          66% { transform: translate(-20vw, 40vh) scale(0.8); }
         }
-        @keyframes meshDrift2 {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(-30vw, -25vh) scale(1.2); }
-          66% { transform: translate(25vw, -30vh) scale(1.1); }
-          100% { transform: translate(0px, 0px) scale(1); }
+        @keyframes float-2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(-40vw, -20vh) scale(1.2); }
+          66% { transform: translate(20vw, -30vh) scale(1.4); }
         }
-        @keyframes meshDrift3 {
-          0% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(20vw, -35vh) scale(1.4); }
-          100% { transform: translate(0px, 0px) scale(1); }
+        @keyframes float-3 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(40vw, -40vh) scale(1.5); }
         }
-        .animate-mesh-1 { animation: meshDrift1 14s ease-in-out infinite alternate; }
-        .animate-mesh-2 { animation: meshDrift2 18s ease-in-out infinite alternate; }
-        .animate-mesh-3 { animation: meshDrift3 12s ease-in-out infinite alternate; }
-      `}</style>
+        .mesh-blob-1 { animation: float-1 15s ease-in-out infinite; }
+        .mesh-blob-2 { animation: float-2 18s ease-in-out infinite; }
+        .mesh-blob-3 { animation: float-3 20s ease-in-out infinite; }
+      `}} />
 
+      {/* --- ANIMATED MESH GRADIENT & AMBIENT GLOW BACKGROUND --- */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {/* Blob 1: Top-Left to Bottom-Right shifting */}
-        <div className="absolute top-[-10%] left-[-10%] w-[70vw] h-[70vw] rounded-full bg-purple-600/35 blur-[130px] animate-mesh-1"></div>
-        {/* Blob 2: Bottom-Right to Top-Left shifting alternatively */}
-        <div className="absolute bottom-[-10%] right-[-10%] w-[70vw] h-[70vw] rounded-full bg-orange-600/30 blur-[150px] animate-mesh-2"></div>
-        {/* Blob 3: Center wandering mesh ambient glow */}
-        <div className="absolute top-[20%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-blue-600/25 blur-[160px] animate-mesh-3"></div>
+        {/* Massive drifting colored blobs to create mesh gradient across the screen */}
+        <div className="mesh-blob-1 absolute -top-[10%] -left-[10%] w-[80vw] h-[80vw] min-w-[600px] min-h-[600px] rounded-full bg-purple-700/30 blur-[120px] opacity-70"></div>
+        <div className="mesh-blob-2 absolute top-[20%] -right-[10%] w-[70vw] h-[70vw] min-w-[500px] min-h-[500px] rounded-full bg-blue-600/20 blur-[140px] opacity-70"></div>
+        <div className="mesh-blob-3 absolute -bottom-[20%] left-[10%] w-[90vw] h-[90vw] min-w-[700px] min-h-[700px] rounded-full bg-indigo-800/30 blur-[150px] opacity-60"></div>
         
-        {/* Ambient Pulsing Core Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50vw] h-[50vw] rounded-full blur-[180px] opacity-50 transition-all duration-1000 animate-pulse" style={{ backgroundColor: glowColor }}></div>
+        {/* Ambient Pulsing Center Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] min-w-[500px] min-h-[500px] rounded-full blur-[160px] opacity-50 transition-all duration-1000 animate-pulse" style={{ backgroundColor: glowColor }}></div>
       </div>
 
-      {/* --- MAIN APP CONTAINER --- */}
+      {/* --- MAIN APP CONTAINER (Z-INDEXED ABOVE MESH) --- */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center">
 
         {toastMessage && (
@@ -823,7 +820,7 @@ function App() {
               )}
             </div>
 
-            {/* Roast My Schedule */}
+            {/* Roast My Schedule (Multimodal OCR) */}
             <div className="w-full max-w-[360px] bg-slate-900/80 border border-orange-500/30 backdrop-blur-2xl rounded-2xl p-5 mb-6 text-left shadow-xl">
               <h3 className="font-bold text-sm text-orange-400 mb-2">📸 Roast My Schedule</h3>
               <p className="text-xs text-slate-400 mb-3">Upload your timetable or calendar screenshot.</p>
