@@ -165,7 +165,7 @@ function App() {
     if (currentView === 'calculating') {
       interval = setInterval(() => {
         setLoadingMsgIdx(prev => (prev + 1) % LOADING_MESSAGES.length);
-      }, 700);
+      }, 800);
     }
     return () => clearInterval(interval);
   }, [currentView]);
@@ -521,13 +521,13 @@ function App() {
   return (
     <div className="min-h-screen text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden bg-slate-950">
       
-      {/* Fast Alternating Mesh Gradient & Ambient Glow Background */}
+      {/* Slower, Smooth Alternating Mesh Gradient & Ambient Glow Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900 via-slate-950 to-black"></div>
-        <div className="absolute -top-[20%] -left-[20%] w-[90vw] h-[90vw] rounded-full bg-purple-600/40 blur-[130px] animate-[pulse_3s_ease-in-out_infinite,spin_10s_linear_infinite]"></div>
-        <div className="absolute top-[20%] -right-[20%] w-[90vw] h-[90vw] rounded-full bg-orange-600/35 blur-[140px] animate-[pulse_3.5s_ease-in-out_infinite]"></div>
-        <div className="absolute -bottom-[20%] left-[10%] w-[90vw] h-[90vw] rounded-full bg-blue-600/30 blur-[150px] animate-[pulse_2.5s_ease-in-out_infinite]"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full blur-[180px] opacity-50 transition-all duration-700 animate-pulse" style={{ backgroundColor: glowColor, animationDuration: '2s' }}></div>
+        <div className="absolute -top-[20%] -left-[20%] w-[90vw] h-[90vw] rounded-full bg-purple-600/35 blur-[140px] animate-[pulse_6s_ease-in-out_infinite,spin_20s_linear_infinite]"></div>
+        <div className="absolute top-[20%] -right-[20%] w-[90vw] h-[90vw] rounded-full bg-orange-600/30 blur-[150px] animate-[pulse_7s_ease-in-out_infinite]"></div>
+        <div className="absolute -bottom-[20%] left-[10%] w-[90vw] h-[90vw] rounded-full bg-blue-600/25 blur-[160px] animate-[pulse_8s_ease-in-out_infinite]"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full blur-[180px] opacity-45 transition-all duration-1000 animate-pulse" style={{ backgroundColor: glowColor, animationDuration: '4s' }}></div>
       </div>
 
       <div className="relative z-10 w-full flex flex-col items-center justify-center">
