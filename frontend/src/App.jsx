@@ -176,7 +176,7 @@ function App() {
     setIsGenerating(false);
   };
 
-  // Real-time Gemini Chat Handler with gemini-3.6-flash and dynamic mood variety
+  // Real-time Gemini Chat Handler addressing user input directly
   const handleSendMessage = async (customText) => {
     const textToSend = customText || chatInput;
     if (!textToSend.trim()) return;
@@ -192,22 +192,13 @@ function App() {
         throw new Error("VITE_GEMINI_API_KEY is missing on Vercel!");
       }
 
-      const randomMoods = [
-        "Be extra savage and dramatic", 
-        "Be unhinged and sarcastic", 
-        "Give chaotic student advice", 
-        "Keep it short, brutal, and witty", 
-        "Act like an exhausted, sarcastic professor"
-      ];
-      const chosenMood = randomMoods[Math.floor(Math.random() * randomMoods.length)];
-
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `You are Prof. Doom, a sarcastic Gen-Z burnout therapist. Style/Mood: ${chosenMood}. User name: ${nickname || 'Student'}, Burnout score: ${finalScore}%. Reply uniquely with Gen-Z slang and humor. User message: "${textToSend}"`
+              text: `You are Prof. Doom, a sarcastic Gen-Z academic burnout therapist, but you MUST answer the user's specific question. The user's name is ${nickname || 'Student'} and their burnout score is ${finalScore}%. Answer their question directly using Gen-Z slang and humor, weaving in a quick roast about their burnout if appropriate. User question: "${textToSend}"`
             }]
           }]
         })
