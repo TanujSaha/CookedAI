@@ -521,20 +521,15 @@ function App() {
   return (
     <div className="min-h-screen text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden bg-slate-950">
       
-      {/* --- FAST ALTERNATING MESH GRADIENT & AMBIENT GLOW ANIMATION --- */}
+      {/* Fast Alternating Mesh Gradient & Ambient Glow Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900 via-slate-950 to-black"></div>
-        
-        {/* Massive sweeping color blobs covering most of the screen alternatively at a faster speed (3s - 5s) */}
-        <div className="absolute -top-[20%] -left-[20%] w-[90vw] h-[90vw] rounded-full bg-purple-600/40 blur-[130px] animate-[pulse_3.5s_ease-in-out_infinite,spin_12s_linear_infinite]"></div>
-        <div className="absolute top-[20%] -right-[20%] w-[90vw] h-[90vw] rounded-full bg-orange-600/35 blur-[140px] animate-[pulse_4s_ease-in-out_infinite]"></div>
-        <div className="absolute -bottom-[20%] left-[10%] w-[90vw] h-[90vw] rounded-full bg-blue-600/30 blur-[150px] animate-[pulse_3s_ease-in-out_infinite]"></div>
-        
-        {/* Ambient Pulsing Center Glow that reacts directly to burnout status */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full blur-[180px] opacity-50 transition-all duration-700 animate-pulse" style={{ backgroundColor: glowColor, animationDuration: '2.5s' }}></div>
+        <div className="absolute -top-[20%] -left-[20%] w-[90vw] h-[90vw] rounded-full bg-purple-600/40 blur-[130px] animate-[pulse_3s_ease-in-out_infinite,spin_10s_linear_infinite]"></div>
+        <div className="absolute top-[20%] -right-[20%] w-[90vw] h-[90vw] rounded-full bg-orange-600/35 blur-[140px] animate-[pulse_3.5s_ease-in-out_infinite]"></div>
+        <div className="absolute -bottom-[20%] left-[10%] w-[90vw] h-[90vw] rounded-full bg-blue-600/30 blur-[150px] animate-[pulse_2.5s_ease-in-out_infinite]"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full blur-[180px] opacity-50 transition-all duration-700 animate-pulse" style={{ backgroundColor: glowColor, animationDuration: '2s' }}></div>
       </div>
 
-      {/* --- MAIN APP CONTAINER --- */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center">
 
         {toastMessage && (
@@ -550,10 +545,6 @@ function App() {
 
         {currentView === 'landing' && (
           <>
-            <div className="w-24 h-24 mb-2 flex items-center justify-center bg-slate-900/80 border border-slate-700/80 backdrop-blur-xl rounded-full shadow-2xl animate-bounce text-4xl">
-              👋🤖
-            </div>
-
             <h1 className="text-6xl md:text-8xl font-black mb-2 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 text-transparent bg-clip-text drop-shadow-md">CookedAI</h1>
             <p className="text-xl md:text-2xl text-slate-300 mb-8 font-medium drop-shadow">Find out before your professor does.</p>
             
