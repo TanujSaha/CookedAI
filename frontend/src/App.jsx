@@ -62,6 +62,13 @@ function App() {
   const [generatedContent, setGeneratedContent] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // --- PHASE 16: CHATBOT STATE ---
+  const [chatMessages, setChatMessages] = useState([
+    { sender: 'bot', text: "Yo! I'm Prof. Doom, your AI burnout counselor. Ask me anything or pick a quick prompt below before your GPA flatlines." }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatting, setIsChatting] = useState(false);
+
   useEffect(() => {
     let interval;
     if (currentView === 'leaderboard' && roomCode) {
@@ -169,6 +176,38 @@ function App() {
     setIsGenerating(false);
   };
 
+  // --- PHASE 16: CHATBOT HANDLER ---
+  const handleSendMessage = async (customText) => {
+    const textToSend = customText || chatInput;
+    if (!textToSend.trim()) return;
+
+    const newMessages = [...chatMessages, { sender: 'user', text: textToSend }];
+    setChatMessages(newMessages);
+    if (!customText) setChatInput('');
+    setIsChatting(true);
+
+    // Simulate AI smart thinking response with Gen-Z flavor
+    setTimeout(() => {
+      let botReply = "Honestly bestie, I'm speechless. Touch grass immediately.";
+      const lower = textToSend.toLowerCase();
+      
+      if (lower.includes('exam') || lower.includes('test')) {
+        botReply = "Exam in a few hours? Time to accept your fate and vibe with the chaos. Energy drinks and prayer is the only syllabus left.";
+      } else if (lower.includes('sleep') || lower.includes('tired')) {
+        botReply = "Sleep is just trial mode for being dead. Drink an iced coffee and lock in.";
+      } else if (lower.includes('excuse') || lower.includes('professor')) {
+        botReply = "Tell your professor your WiFi was possessed by a Victorian ghost. 60% of the time, it works every time.";
+      } else if (lower.includes('screen') || lower.includes('phone')) {
+        botReply = "Your screen time is higher than your attendance rate. Impressive, but deeply concerning.";
+      } else {
+        botReply = `Look ${nickname || 'friend'}, with a cooked score of ${finalScore}%, worrying is optional because damage control is already required!`;
+      }
+
+      setChatMessages(prev => [...prev, { sender: 'bot', text: botReply }]);
+      setIsChatting(false);
+    }, 1000);
+  };
+
   const handleAnswerChange = (questionId, value) => setAnswers(prev => ({ ...prev, [questionId]: Number(value) }));
   const handleBack = () => currentStep > 0 ? setCurrentStep(prev => prev - 1) : setCurrentView('landing');
   const handleRestart = () => { setAnswers({}); setCurrentStep(0); setGeneratedContent(null); setCurrentView('landing'); };
@@ -197,7 +236,6 @@ function App() {
     setRoomCode(joinCodeInput.toUpperCase()); setCurrentView('quiz'); setError(null);
   };
 
-  // --- PNG DOWNLOAD HANDLER ---
   const handleDownload = () => {
     const touchGrassScore = Math.max(0, Math.round(100 - ((answers.screen_time ?? 5) * 6)));
     const userName = nickname ? nickname.toUpperCase() : 'COOKED';
@@ -269,7 +307,6 @@ function App() {
       const context = canvas.getContext('2d');
       context.drawImage(image, 0, 0);
 
-      // Convert canvas to high-quality PNG
       const pngUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = pngUrl;
@@ -503,7 +540,47 @@ function App() {
             </div>
           )}
 
-          <button onClick={handleRestart} className="mt-2 py-3 w-full text-slate-400 hover:text-white font-bold">↺ Retake the Test</button>
+          {/* --- PHASE 16: GEN-Z AI CHATBOT WIDGET --- */}
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-4 mt-6 text-left shadow-xl">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800">
+              <span className="text-xl">🤖</span>
+              <div>
+                <h3 className="font-bold text-sm text-white">Chat with Prof. Doom</h3>
+                <p className="text-[10px] text-slate-400">Your Gen-Z Burnout Therapist</p>
+              </div>
+            </div>
+
+            <div className="h-48 overflow-y-auto flex flex-col gap-2 mb-3 pr-1 text-xs font-mono">
+              {chatMessages.map((msg, idx) => (
+                <div key={idx} className={`p-2.5 rounded-xl max-w-[85%] leading-relaxed ${msg.sender === 'bot' ? 'bg-slate-800 text-slate-200 self-start border border-slate-700' : 'bg-orange-600 text-white self-end'}`}>
+                  {msg.text}
+                </div>
+              ))}
+              {isChatting && (
+                <div className="bg-slate-800 text-slate-400 p-2 rounded-xl self-start text-[10px] animate-pulse">
+                  Prof. Doom is judging your choices...
+                </div>
+              )}
+            </div>
+
+            {/* Quick Prompt Chips */}
+            <div className="flex flex-wrap gap-1 mb-3">
+              <button onClick={() => handleSendMessage("I have an exam in 2 hours")} className="bg-slate-800 hover:bg-slate-700 text-[10px] text-orange-400 px-2 py-1 rounded-lg border border-slate-700">🚨 Exam in 2 hrs</button>
+              <button onClick={() => handleSendMessage("How do I fix my sleep schedule?")} className="bg-slate-800 hover:bg-slate-700 text-[10px] text-purple-400 px-2 py-1 rounded-lg border border-slate-700">🌙 Sleep advice</button>
+              <button onClick={() => handleSendMessage("Write me an excuse email for class")} className="bg-slate-800 hover:bg-slate-700 text-[10px] text-green-400 px-2 py-1 rounded-lg border border-slate-700">✉️ Fake excuse</button>
+            </div>
+
+            <div className="flex gap-2">
+              <input 
+                type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder="Ask Prof. Doom anything..." 
+                className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"
+              />
+              <button onClick={() => handleSendMessage()} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all">Send</button>
+            </div>
+          </div>
+
+          <button onClick={handleRestart} className="mt-4 py-3 w-full text-slate-400 hover:text-white font-bold">↺ Retake the Test</button>
         </div>
       </div>
     );
