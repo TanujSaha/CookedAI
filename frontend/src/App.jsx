@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import html2canvas from 'html2canvas';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -27,12 +26,12 @@ const LOADING_MESSAGES = [
 ];
 
 function getCookedData(score) {
-  if (score <= 20) return { category: "🥗 FRESH", text: "Suspiciously responsible.", personality: "The Surprisingly Responsible One", color: "text-green-400", bg: "from-green-500/20" };
-  if (score <= 40) return { category: "🍳 SLIGHTLY TOASTED", text: "Questionable decisions.", personality: "The Weekend Warrior", color: "text-yellow-400", bg: "from-yellow-500/20" };
-  if (score <= 60) return { category: "🔥 GETTING COOKED", text: "The situation is developing.", personality: "The Chaos Student", color: "text-orange-400", bg: "from-orange-500/20" };
-  if (score <= 80) return { category: "🍗 WELL DONE", text: "Academic recovery difficult.", personality: "The Professional Procrastinator", color: "text-orange-600", bg: "from-orange-600/20" };
-  if (score <= 95) return { category: "💀 ABSOLUTELY COOKED", text: "Negotiating with destiny.", personality: "The Last-Minute Warrior", color: "text-red-500", bg: "from-red-500/20" };
-  return { category: "☢️ BEYOND SAVING", text: "Contact your future self.", personality: "The Sleep-Deprived Zombie", color: "text-red-700", bg: "from-red-700/20" };
+  if (score <= 20) return { category: "🥗 FRESH", text: "Suspiciously responsible.", personality: "The Surprisingly Responsible One", color: "#4ade80" };
+  if (score <= 40) return { category: "🍳 SLIGHTLY TOASTED", text: "Questionable decisions.", personality: "The Weekend Warrior", color: "#facc15" };
+  if (score <= 60) return { category: "🔥 GETTING COOKED", text: "The situation is developing.", personality: "The Chaos Student", color: "#fb923c" };
+  if (score <= 80) return { category: "🍗 WELL DONE", text: "Academic recovery difficult.", personality: "The Professional Procrastinator", color: "#c2410c" };
+  if (score <= 95) return { category: "💀 ABSOLUTELY COOKED", text: "Negotiating with destiny.", personality: "The Last-Minute Warrior", color: "#ef4444" };
+  return { category: "☢️ BEYOND SAVING", text: "Contact your future self.", personality: "The Sleep-Deprived Zombie", color: "#b91c1c" };
 }
 
 function App() {
@@ -42,9 +41,11 @@ function App() {
   const [finalScore, setFinalScore] = useState(0);
   const [cookedData, setCookedData] = useState(null);
   
-  // Custom User Details
+  // Profile State
   const [nickname, setNickname] = useState('');
-  const [studentCode, setStudentCode] = useState('BWU/BTA/23/456');
+  const [studentCode, setStudentCode] = useState('');
+  const [profileSaved, setProfileSaved] = useState(false);
+
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [roomCode, setRoomCode] = useState(null);
   const [leaderboardData, setLeaderboardData] = useState([]);
@@ -96,7 +97,17 @@ function App() {
     if (payload.sleep_hours <= 3 && !newBadges.includes('Sleep Survivor')) newBadges.push('Sleep Survivor');
     if (payload.assignments === 0 && payload.attendance >= 90 && !newBadges.includes('Academic Weapon')) newBadges.push('Academic Weapon');
     setXp(earnedXP); setBadges(newBadges);
-    localStorage.setItem('cooked_xp', earnedXP); localStorage.setItem('cooked_badges', JSON.stringify(newBadges));
+    localStorage.setItem('cooked_xp', earnedXP);
+    localStorage.setItem('cooked_badges', JSON.stringify(newBadges));
+  };
+
+  const handleSaveProfile = () => {
+    if (!nickname.trim()) {
+      setError("Please enter your name or nickname!");
+      return;
+    }
+    setError(null);
+    setProfileSaved(true);
   };
 
   const handleNext = async () => {
@@ -162,10 +173,18 @@ function App() {
   const handleAnswerChange = (questionId, value) => setAnswers(prev => ({ ...prev, [questionId]: Number(value) }));
   const handleBack = () => currentStep > 0 ? setCurrentStep(prev => prev - 1) : setCurrentView('landing');
   const handleRestart = () => { setAnswers({}); setCurrentStep(0); setGeneratedContent(null); setCurrentView('landing'); };
-  const handleStart = () => { setRoomCode(null); setError(null); setCurrentView('quiz'); };
+  const handleStart = () => {
+    if (!profileSaved) {
+      setError("Please click 'DONE' to save your profile first!");
+      return;
+    }
+    setRoomCode(null); 
+    setError(null); 
+    setCurrentView('quiz'); 
+  };
   
   const handleCreateRoom = async () => { 
-    if (!nickname) { setError("Nickname is required!"); return; }
+    if (!profileSaved) { setError("Please save your profile first!"); return; }
     try {
       const res = await fetch(`${API_URL}/api/rooms/create`, { method: "POST" }); 
       const data = await res.json(); 
@@ -174,27 +193,79 @@ function App() {
   };
   
   const handleJoinRoom = () => { 
-    if (!nickname || !joinCodeInput) { setError("Nickname and Code are required!"); return; }
+    if (!profileSaved) { setError("Please save your profile first!"); return; }
+    if (!joinCodeInput) { setError("Enter room code!"); return; }
     setRoomCode(joinCodeInput.toUpperCase()); setCurrentView('quiz'); setError(null);
   };
 
-  // --- FIXED DOWNLOAD FUNCTION WITH HTML2CANVAS OPTIONS ---
-  const handleDownload = async () => { 
-    if (!idCardRef.current) return; 
-    try {
-      const canvas = await html2canvas(idCardRef.current, { 
-        backgroundColor: '#0f172a', 
-        scale: 2,
-        useCORS: true,
-        allowTaint: true
-      }); 
-      const fakeLink = document.createElement("a"); 
-      fakeLink.download = `Cooked_ID_${finalScore}.png`; 
-      fakeLink.href = canvas.toDataURL("image/png", 1.0); 
-      fakeLink.click(); 
-    } catch (err) {
-      alert("Download failed. Try taking a screenshot instead!");
-    }
+  const handleDownload = () => {
+    const touchGrassScore = Math.max(0, Math.round(100 - ((answers.screen_time ?? 5) * 6)));
+    const userName = nickname ? nickname.toUpperCase() : 'COOKED';
+    const sCode = studentCode.trim() || 'BWU/ABC/XX/XXX';
+    const scoreVal = finalScore;
+    const cat = cookedData.category;
+    const desc = cookedData.text;
+    const pers = cookedData.personality;
+    const col = cookedData.color;
+
+    const svgString = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280">
+        <style>
+          .bg { fill: #0f172a; }
+          .card-bg { fill: #1e293b; stroke: #334155; stroke-width: 4px; rx: 32px; }
+          .title-sub { font-family: monospace; font-size: 18px; fill: #94a3b8; letter-spacing: 4px; }
+          .title-main { font-family: sans-serif; font-weight: 900; font-size: 36px; fill: #ffffff; }
+          .badge-box { fill: #1e293b; stroke: #475569; stroke-width: 2px; rx: 12px; }
+          .badge-text { font-family: monospace; font-size: 18px; fill: #cbd5e1; }
+          .score-num { font-family: sans-serif; font-weight: 900; font-size: 180px; fill: ${col}; text-anchor: middle; }
+          .score-pct { font-family: sans-serif; font-weight: 700; font-size: 40px; fill: #64748b; text-anchor: middle; }
+          .info-box { fill: #020617; stroke: #1e293b; stroke-width: 2px; rx: 24px; }
+          .cat-text { font-family: sans-serif; font-weight: 900; font-size: 32px; fill: ${col}; }
+          .desc-text { font-family: sans-serif; font-weight: 500; font-size: 22px; fill: #e2e8f0; }
+          .divider { stroke: #334155; stroke-width: 2px; }
+          .lbl { font-family: sans-serif; font-weight: 700; font-size: 14px; fill: #64748b; letter-spacing: 2px; }
+          .val { font-family: sans-serif; font-weight: 700; font-size: 22px; fill: #ffffff; }
+          .footer { font-family: monospace; font-size: 20px; fill: #94a3b8; }
+        </style>
+        
+        <rect width="720" height="1280" class="bg"/>
+        
+        <g transform="translate(40, 40)">
+          <rect width="640" height="1200" class="card-bg"/>
+          
+          <text x="48" y="100" class="title-sub">OFFICIAL REPORT</text>
+          <text x="48" y="145" class="title-main">${userName} ID</text>
+          
+          <rect x="360" y="70" width="232" height="48" class="badge-box"/>
+          <text x="476" y="101" class="badge-text" text-anchor="middle">#${sCode}</text>
+          
+          <text x="320" y="520" class="score-num">${scoreVal}</text>
+          <text x="320" y="585" class="score-pct">%</text>
+          
+          <rect x="48" y="680" width="544" height="320" class="info-box"/>
+          <text x="80" y="735" class="cat-text">${cat}</text>
+          <text x="80" y="780" class="desc-text">"${desc}"</text>
+          
+          <line x1="80" y1="820" x2="560" y2="820" class="divider"/>
+          
+          <text x="80" y="865" class="lbl">PERSONALITY</text>
+          <text x="80" y="905" class="val">${pers}</text>
+          
+          <text x="48" y="1120" class="footer">GRASS: ${touchGrassScore}/100</text>
+          <text x="592" y="1120" class="footer" text-anchor="end">CookedAI</text>
+        </g>
+      </svg>
+    `;
+
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Cooked_ID_${finalScore}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // --- VIEWS ---
@@ -210,26 +281,38 @@ function App() {
         <h1 className="text-6xl md:text-8xl font-black mb-2 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 text-transparent bg-clip-text mt-8">CookedAI</h1>
         <p className="text-xl md:text-2xl text-slate-400 mb-8 font-medium">Find out before your professor does.</p>
         
-        {/* User Details Setup Card */}
-        <div className="w-full max-w-md bg-slate-900 border border-slate-700 p-6 rounded-3xl shadow-xl mb-6 text-left">
+        {/* Profile Section & Done Button */}
+        <div className="w-full max-w-md bg-slate-900 border border-slate-700 p-6 rounded-3xl shadow-xl mb-6 text-left relative">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-bold tracking-wider text-slate-400 uppercase">👤 Profile Setup</h3>
+            {profileSaved && <span className="text-green-400 text-xs font-bold bg-green-500/20 px-2 py-1 rounded">✓ Saved</span>}
+          </div>
+
           <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Your Name / Nickname</label>
           <input 
-            type="text" maxLength="15" value={nickname} onChange={(e) => setNickname(e.target.value)} 
+            type="text" maxLength="15" value={nickname} onChange={(e) => { setNickname(e.target.value); setProfileSaved(false); }} 
             className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mb-4 text-white focus:outline-none focus:border-orange-500" 
             placeholder="e.g. Tanuj Saha" 
           />
           
           <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Student Code</label>
           <input 
-            type="text" value={studentCode} onChange={(e) => setStudentCode(e.target.value)} 
-            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white font-mono focus:outline-none focus:border-orange-500" 
-            placeholder="BWU/BTA/23/456" 
+            type="text" value={studentCode} onChange={(e) => { setStudentCode(e.target.value); setProfileSaved(false); }} 
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mb-4 text-white font-mono focus:outline-none focus:border-orange-500" 
+            placeholder="BWU / ABC / XX / XXX" 
           />
+
+          <button 
+            onClick={handleSaveProfile}
+            className={`w-full py-3 font-bold rounded-xl transition-all shadow-md ${profileSaved ? 'bg-green-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+          >
+            {profileSaved ? '✓ PROFILE SAVED (CLICK DONE/SOLO)' : 'DONE'}
+          </button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-8 w-full max-w-md">
           <button onClick={handleStart} className="flex-1 py-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-2xl text-lg shadow-[0_0_30px_rgba(249,115,22,0.4)] transform hover:scale-105 transition-all">🔥 SOLO</button>
-          <button onClick={() => setCurrentView('multiplayer_setup')} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-2xl text-lg border border-slate-600 transform hover:scale-105 transition-all">👥 BATTLE</button>
+          <button onClick={() => { if(!profileSaved){setError("Save profile with DONE first!"); return;} setCurrentView('multiplayer_setup'); }} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-2xl text-lg border border-slate-600 transform hover:scale-105 transition-all">👥 BATTLE</button>
         </div>
 
         <button onClick={() => setCurrentView('achievements')} className="flex items-center gap-3 bg-slate-900 border border-slate-700 px-6 py-3 rounded-full hover:bg-slate-800 transition-colors">
@@ -300,12 +383,6 @@ function App() {
         <div className="w-full max-w-md bg-slate-900 border border-slate-700 p-8 rounded-3xl shadow-2xl">
           <h2 className="text-3xl font-black text-center mb-8">Join the Lobby</h2>
           
-          <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Your Nickname</label>
-          <input type="text" maxLength="12" value={nickname} onChange={(e) => setNickname(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mb-4 text-white focus:outline-none focus:border-orange-500" placeholder="e.g. Tanuj" />
-          
-          <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Student Code</label>
-          <input type="text" value={studentCode} onChange={(e) => setStudentCode(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mb-6 text-white font-mono focus:outline-none focus:border-orange-500" placeholder="BWU/BTA/23/456" />
-
           <button onClick={handleCreateRoom} className="w-full py-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl mb-6 shadow-lg text-lg transition-all">✨ CREATE NEW ROOM</button>
           <div className="flex items-center gap-4 mb-6 text-slate-500"><div className="flex-1 h-px bg-slate-700"></div><span>OR</span><div className="flex-1 h-px bg-slate-700"></div></div>
           <div className="flex gap-2 mb-6">
@@ -352,6 +429,7 @@ function App() {
 
   if (currentView === 'results' && cookedData) {
     const touchGrassScore = Math.max(0, Math.round(100 - ((answers.screen_time ?? 5) * 6)));
+    const dispCode = studentCode.trim() || 'BWU/ABC/XX/XXX';
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center py-12 px-4 overflow-y-auto">
         {roomCode && (
@@ -360,23 +438,23 @@ function App() {
           </button>
         )}
         <div ref={idCardRef} className={`w-[360px] h-[640px] bg-slate-900 border-2 border-slate-700 rounded-3xl p-6 flex flex-col relative overflow-hidden mb-8`}>
-          <div className={`absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br ${cookedData.bg} to-transparent rounded-full blur-3xl`}></div>
-          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-tr from-purple-600/20 to-transparent rounded-full blur-3xl"></div>
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl"></div>
           <div className="flex justify-between items-start mb-6 z-10">
             <div>
               <p className="text-[10px] text-slate-400 font-mono tracking-widest">OFFICIAL REPORT</p>
               <h2 className="font-black text-xl tracking-tight text-white">{nickname ? nickname.toUpperCase() : 'COOKED'} ID</h2>
             </div>
-            <div className="bg-slate-800/80 px-2 py-1 rounded text-xs font-mono text-slate-400 border border-slate-700">
-              #{studentCode}
+            <div className="bg-slate-800/80 px-2 py-1 rounded text-[11px] font-mono text-slate-300 border border-slate-700 max-w-[150px] truncate">
+              #{dispCode}
             </div>
           </div>
           <div className="flex-1 flex flex-col items-center justify-center z-10 mb-6">
-            <div className={`text-9xl font-black tracking-tighter ${cookedData.color} drop-shadow-2xl`}>{finalScore}</div>
+            <div className="text-9xl font-black tracking-tighter drop-shadow-2xl" style={{ color: cookedData.color }}>{finalScore}</div>
             <p className="text-2xl font-bold text-slate-500 -mt-2">%</p>
           </div>
           <div className="z-10 bg-slate-950/50 p-4 rounded-2xl border border-slate-800/50 backdrop-blur-sm mb-4">
-            <h3 className={`font-black text-xl mb-1 ${cookedData.color}`}>{cookedData.category}</h3>
+            <h3 className="font-black text-xl mb-1" style={{ color: cookedData.color }}>{cookedData.category}</h3>
             <p className="text-sm text-slate-300 font-medium mb-3">"{cookedData.text}"</p>
             <div className="h-px w-full bg-slate-700/50 mb-3"></div>
             <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Personality</p>
@@ -389,7 +467,7 @@ function App() {
         </div>
         
         <div className="w-full max-w-[360px] flex flex-col gap-3">
-          <button onClick={handleDownload} className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all">📸 DOWNLOAD ID CARD</button>
+          <button onClick={handleDownload} className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all">📸 DOWNLOAD ID CARD (.SVG)</button>
           
           <div className="flex gap-3">
             <button onClick={() => fetchContent('roast')} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl border border-slate-600 text-red-400">🔥 ROAST</button>
