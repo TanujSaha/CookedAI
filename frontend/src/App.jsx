@@ -176,7 +176,7 @@ function App() {
     setIsGenerating(false);
   };
 
-  // Real-time Gemini Chat Handler with random mood injection to prevent caching/repetition
+  // Real-time Gemini Chat Handler with gemini-2.5-flash and dynamic mood variety
   const handleSendMessage = async (customText) => {
     const textToSend = customText || chatInput;
     if (!textToSend.trim()) return;
@@ -189,7 +189,7 @@ function App() {
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       if (!apiKey) {
-        throw new Error("VITE_GEMINI_API_KEY is missing!");
+        throw new Error("VITE_GEMINI_API_KEY is missing on Vercel!");
       }
 
       const randomMoods = [
@@ -201,7 +201,7 @@ function App() {
       ];
       const chosenMood = randomMoods[Math.floor(Math.random() * randomMoods.length)];
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
