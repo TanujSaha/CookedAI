@@ -62,9 +62,9 @@ function App() {
   const [generatedContent, setGeneratedContent] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // --- PHASE 16: CHATBOT STATE ---
+  // Chatbot State
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'bot', text: "Yo! I'm Prof. Doom, your AI burnout counselor. Ask me anything or pick a quick prompt below before your GPA flatlines." }
+    { sender: 'bot', text: "Yo! I'm Prof. Doom, your Gen-Z AI burnout therapist powered by Gemini. Ask me anything before your GPA flatlines." }
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isChatting, setIsChatting] = useState(false);
@@ -176,7 +176,7 @@ function App() {
     setIsGenerating(false);
   };
 
-  // --- PHASE 16: CHATBOT HANDLER ---
+  // Real-time Gemini Chat Handler with random mood injection to prevent caching/repetition
   const handleSendMessage = async (customText) => {
     const textToSend = customText || chatInput;
     if (!textToSend.trim()) return;
@@ -186,26 +186,43 @@ function App() {
     if (!customText) setChatInput('');
     setIsChatting(true);
 
-    // Simulate AI smart thinking response with Gen-Z flavor
-    setTimeout(() => {
-      let botReply = "Honestly bestie, I'm speechless. Touch grass immediately.";
-      const lower = textToSend.toLowerCase();
-      
-      if (lower.includes('exam') || lower.includes('test')) {
-        botReply = "Exam in a few hours? Time to accept your fate and vibe with the chaos. Energy drinks and prayer is the only syllabus left.";
-      } else if (lower.includes('sleep') || lower.includes('tired')) {
-        botReply = "Sleep is just trial mode for being dead. Drink an iced coffee and lock in.";
-      } else if (lower.includes('excuse') || lower.includes('professor')) {
-        botReply = "Tell your professor your WiFi was possessed by a Victorian ghost. 60% of the time, it works every time.";
-      } else if (lower.includes('screen') || lower.includes('phone')) {
-        botReply = "Your screen time is higher than your attendance rate. Impressive, but deeply concerning.";
-      } else {
-        botReply = `Look ${nickname || 'friend'}, with a cooked score of ${finalScore}%, worrying is optional because damage control is already required!`;
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("VITE_GEMINI_API_KEY is missing!");
       }
 
+      const randomMoods = [
+        "Be extra savage and dramatic", 
+        "Be unhinged and sarcastic", 
+        "Give chaotic student advice", 
+        "Keep it short, brutal, and witty", 
+        "Act like an exhausted, sarcastic professor"
+      ];
+      const chosenMood = randomMoods[Math.floor(Math.random() * randomMoods.length)];
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are Prof. Doom, a sarcastic Gen-Z burnout therapist. Style/Mood: ${chosenMood}. User name: ${nickname || 'Student'}, Burnout score: ${finalScore}%. Reply uniquely with Gen-Z slang and humor. User message: "${textToSend}"`
+            }]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message || "Gemini API Error");
+
+      const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "My brain lagged. Try again bestie.";
       setChatMessages(prev => [...prev, { sender: 'bot', text: botReply }]);
+    } catch (error) {
+      setChatMessages(prev => [...prev, { sender: 'bot', text: `Prof. Doom error: ${error.message}` }]);
+    } finally {
       setIsChatting(false);
-    }, 1000);
+    }
   };
 
   const handleAnswerChange = (questionId, value) => setAnswers(prev => ({ ...prev, [questionId]: Number(value) }));
@@ -540,30 +557,29 @@ function App() {
             </div>
           )}
 
-          {/* --- PHASE 16: GEN-Z AI CHATBOT WIDGET --- */}
+          {/* Real-Time Gemini Chatbot Widget */}
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-4 mt-6 text-left shadow-xl">
             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800">
               <span className="text-xl">🤖</span>
               <div>
                 <h3 className="font-bold text-sm text-white">Chat with Prof. Doom</h3>
-                <p className="text-[10px] text-slate-400">Your Gen-Z Burnout Therapist</p>
+                <p className="text-[10px] text-slate-400">Live Gemini Burnout Therapist</p>
               </div>
             </div>
 
-            <div className="h-48 overflow-y-auto flex flex-col gap-2 mb-3 pr-1 text-xs font-mono">
+            <div className="h-48 overflow-y-auto flex flex-col gap-2 mb-3 pr-3 text-xs font-mono">
               {chatMessages.map((msg, idx) => (
-                <div key={idx} className={`p-2.5 rounded-xl max-w-[85%] leading-relaxed ${msg.sender === 'bot' ? 'bg-slate-800 text-slate-200 self-start border border-slate-700' : 'bg-orange-600 text-white self-end'}`}>
+                <div key={idx} className={`p-3 rounded-2xl max-w-[80%] leading-relaxed break-words ${msg.sender === 'bot' ? 'bg-slate-800 text-slate-200 self-start border border-slate-700' : 'bg-orange-600 text-white self-end mr-1'}`}>
                   {msg.text}
                 </div>
               ))}
               {isChatting && (
                 <div className="bg-slate-800 text-slate-400 p-2 rounded-xl self-start text-[10px] animate-pulse">
-                  Prof. Doom is judging your choices...
+                  Prof. Doom is typing...
                 </div>
               )}
             </div>
 
-            {/* Quick Prompt Chips */}
             <div className="flex flex-wrap gap-1 mb-3">
               <button onClick={() => handleSendMessage("I have an exam in 2 hours")} className="bg-slate-800 hover:bg-slate-700 text-[10px] text-orange-400 px-2 py-1 rounded-lg border border-slate-700">🚨 Exam in 2 hrs</button>
               <button onClick={() => handleSendMessage("How do I fix my sleep schedule?")} className="bg-slate-800 hover:bg-slate-700 text-[10px] text-purple-400 px-2 py-1 rounded-lg border border-slate-700">🌙 Sleep advice</button>
