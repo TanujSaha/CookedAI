@@ -25,6 +25,7 @@ const LOADING_MESSAGES = [
   "Running highly questionable mathematics..."
 ];
 
+// Web Audio API Sound Synthesizer
 const playSound = (type) => {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -165,7 +166,7 @@ function App() {
     if (currentView === 'calculating') {
       interval = setInterval(() => {
         setLoadingMsgIdx(prev => (prev + 1) % LOADING_MESSAGES.length);
-      }, 800);
+      }, 700);
     }
     return () => clearInterval(interval);
   }, [currentView]);
@@ -521,15 +522,43 @@ function App() {
   return (
     <div className="min-h-screen text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden bg-slate-950">
       
-      {/* Slower, Smooth Alternating Mesh Gradient & Ambient Glow Background */}
+      {/* --- ALTERNATING FULL-SCREEN MESH GRADIENT & AMBIENT GLOW ANIMATIONS --- */}
+      <style>{`
+        @keyframes meshDrift1 {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(35vw, 25vh) scale(1.3); }
+          66% { transform: translate(-20vw, 35vh) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes meshDrift2 {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(-30vw, -25vh) scale(1.2); }
+          66% { transform: translate(25vw, -30vh) scale(1.1); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes meshDrift3 {
+          0% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(20vw, -35vh) scale(1.4); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-mesh-1 { animation: meshDrift1 14s ease-in-out infinite alternate; }
+        .animate-mesh-2 { animation: meshDrift2 18s ease-in-out infinite alternate; }
+        .animate-mesh-3 { animation: meshDrift3 12s ease-in-out infinite alternate; }
+      `}</style>
+
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900 via-slate-950 to-black"></div>
-        <div className="absolute -top-[20%] -left-[20%] w-[90vw] h-[90vw] rounded-full bg-purple-600/35 blur-[140px] animate-[pulse_6s_ease-in-out_infinite,spin_20s_linear_infinite]"></div>
-        <div className="absolute top-[20%] -right-[20%] w-[90vw] h-[90vw] rounded-full bg-orange-600/30 blur-[150px] animate-[pulse_7s_ease-in-out_infinite]"></div>
-        <div className="absolute -bottom-[20%] left-[10%] w-[90vw] h-[90vw] rounded-full bg-blue-600/25 blur-[160px] animate-[pulse_8s_ease-in-out_infinite]"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full blur-[180px] opacity-45 transition-all duration-1000 animate-pulse" style={{ backgroundColor: glowColor, animationDuration: '4s' }}></div>
+        {/* Blob 1: Top-Left to Bottom-Right shifting */}
+        <div className="absolute top-[-10%] left-[-10%] w-[70vw] h-[70vw] rounded-full bg-purple-600/35 blur-[130px] animate-mesh-1"></div>
+        {/* Blob 2: Bottom-Right to Top-Left shifting alternatively */}
+        <div className="absolute bottom-[-10%] right-[-10%] w-[70vw] h-[70vw] rounded-full bg-orange-600/30 blur-[150px] animate-mesh-2"></div>
+        {/* Blob 3: Center wandering mesh ambient glow */}
+        <div className="absolute top-[20%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-blue-600/25 blur-[160px] animate-mesh-3"></div>
+        
+        {/* Ambient Pulsing Core Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50vw] h-[50vw] rounded-full blur-[180px] opacity-50 transition-all duration-1000 animate-pulse" style={{ backgroundColor: glowColor }}></div>
       </div>
 
+      {/* --- MAIN APP CONTAINER --- */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center">
 
         {toastMessage && (
@@ -545,6 +574,10 @@ function App() {
 
         {currentView === 'landing' && (
           <>
+            <div className="w-24 h-24 mb-2 flex items-center justify-center bg-slate-900/80 border border-slate-700/80 backdrop-blur-xl rounded-full shadow-2xl animate-bounce text-4xl">
+              👋🤖
+            </div>
+
             <h1 className="text-6xl md:text-8xl font-black mb-2 bg-gradient-to-r from-orange-400 via-red-500 to-purple-500 text-transparent bg-clip-text drop-shadow-md">CookedAI</h1>
             <p className="text-xl md:text-2xl text-slate-300 mb-8 font-medium drop-shadow">Find out before your professor does.</p>
             
