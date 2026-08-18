@@ -25,7 +25,6 @@ const LOADING_MESSAGES = [
   "Running highly questionable mathematics..."
 ];
 
-// Web Audio API Sound Synthesizer
 const playSound = (type) => {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -430,14 +429,14 @@ function App() {
 
   const handleDownload = () => {
     playSound('click');
-    const touchGrassScore = Math.max(0, Math.round(100 - ((answers.screen_time ?? 5) * 6)));
     const userName = nickname ? nickname.toUpperCase() : 'COOKED';
-    const sCode = studentCode.trim() || 'BWU/ABC/XX/XXX';
+    const finalDispCode = studentCode.trim() || 'BWU/ABC/XX/XXX';
     const scoreVal = finalScore;
     const cat = cookedData.category;
     const desc = cookedData.text;
     const pers = cookedData.personality;
     const col = cookedData.color;
+    const touchGrassVal = Math.max(0, Math.round(100 - ((answers.screen_time ?? 5) * 6)));
 
     const svgString = `
       <svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280">
@@ -464,7 +463,7 @@ function App() {
           <text x="48" y="100" class="title-sub">OFFICIAL REPORT</text>
           <text x="48" y="145" class="title-main">${userName} ID</text>
           <rect x="360" y="70" width="232" height="48" class="badge-box"/>
-          <text x="476" y="101" class="badge-text" text-anchor="middle">#${sCode}</text>
+          <text x="476" y="101" class="badge-text" text-anchor="middle">#${finalDispCode}</text>
           <text x="320" y="520" class="score-num">${scoreVal}</text>
           <text x="320" y="585" class="score-pct">%</text>
           <rect x="48" y="680" width="544" height="320" class="info-box"/>
@@ -473,7 +472,7 @@ function App() {
           <line x1="80" y1="820" x2="560" y2="820" class="divider"/>
           <text x="80" y="865" class="lbl">PERSONALITY</text>
           <text x="80" y="905" class="val">${pers}</text>
-          <text x="48" y="1120" class="footer">GRASS: ${touchGrassScore}/100</text>
+          <text x="48" y="1120" class="footer">GRASS: ${touchGrassVal}/100</text>
           <text x="592" y="1120" class="footer" text-anchor="end">CookedAI</text>
         </g>
       </svg>
@@ -517,7 +516,10 @@ function App() {
     );
   }
 
-  // Dynamic Ambient Glow Color based on Score or Default
+  // Safely define rendering variables to prevent crashes
+  const dispCode = studentCode.trim() || 'BWU/ABC/XX/XXX';
+  const touchGrassScore = Math.max(0, Math.round(100 - ((answers.screen_time ?? 5) * 6)));
+  const brainBatteryLevel = Math.max(5, 100 - finalScore);
   const glowColor = cookedData ? cookedData.color : '#f97316';
 
   return (
@@ -551,7 +553,7 @@ function App() {
         <div className="mesh-blob-2 absolute top-[20%] -right-[10%] w-[70vw] h-[70vw] min-w-[500px] min-h-[500px] rounded-full bg-blue-600/20 blur-[140px] opacity-70"></div>
         <div className="mesh-blob-3 absolute -bottom-[20%] left-[10%] w-[90vw] h-[90vw] min-w-[700px] min-h-[700px] rounded-full bg-indigo-800/30 blur-[150px] opacity-60"></div>
         
-        {/* Ambient Pulsing Center Glow */}
+        {/* Ambient Pulsing Center Glow dynamically linked to score color */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] min-w-[500px] min-h-[500px] rounded-full blur-[160px] opacity-50 transition-all duration-1000 animate-pulse" style={{ backgroundColor: glowColor }}></div>
       </div>
 
@@ -770,7 +772,7 @@ function App() {
                 <p className="text-sm font-bold text-white">{cookedData.personality}</p>
               </div>
               <div className="z-10 flex justify-between items-center text-xs font-mono text-slate-400">
-                <div>GRASS: {Math.max(0, Math.round(100 - ((answers.screen_time ?? 5) * 6)))}/100</div>
+                <div>GRASS: {touchGrassScore}/100</div>
                 <div>CookedAI</div>
               </div>
             </div>
@@ -779,10 +781,10 @@ function App() {
             <div className="w-full max-w-[360px] bg-slate-900/80 border border-slate-700 backdrop-blur-2xl rounded-2xl p-5 mb-6 text-left shadow-xl">
               <h3 className="font-bold text-sm text-white mb-3 flex items-center justify-between">
                 <span>🔋 Brain Battery</span>
-                <span className="font-mono text-xs" style={{ color: cookedData.color }}>{Math.max(5, 100 - finalScore)}% Remaining</span>
+                <span className="font-mono text-xs" style={{ color: cookedData.color }}>{brainBatteryLevel}% Remaining</span>
               </h3>
               <div className="w-full bg-slate-950 rounded-full h-4 p-0.5 border border-slate-800 mb-4">
-                <div className="h-3 rounded-full transition-all duration-1000" style={{ width: `${Math.max(5, 100 - finalScore)}%`, backgroundColor: cookedData.color }}></div>
+                <div className="h-3 rounded-full transition-all duration-1000" style={{ width: `${brainBatteryLevel}%`, backgroundColor: cookedData.color }}></div>
               </div>
 
               <h3 className="font-bold text-sm text-white mb-2">⚡ Danger Breakdown</h3>
@@ -932,8 +934,7 @@ function App() {
             <div className="text-6xl md:text-7xl font-extrabold text-orange-400 text-center mb-4 transition-all duration-200 ease-in-out">
               {answers[QUESTIONS[currentStep].id] !== undefined ? answers[QUESTIONS[currentStep].id] : QUESTIONS[currentStep].defaultValue}
             </div>
-            <p className="text-center text-slate-400 mb-8 italic h-6">"{QUESTIONS[currentStep].getHumor(answers[QUESTIONS[currentStep].id] !== undefined ? answers[QUESTIONS[currentStep].id] : QUESTIONS[currentStep].defaultValue)}
-"</p>
+            <p className="text-center text-slate-400 mb-8 italic h-6">"{QUESTIONS[currentStep].getHumor(answers[QUESTIONS[currentStep].id] !== undefined ? answers[QUESTIONS[currentStep].id] : QUESTIONS[currentStep].defaultValue)}"</p>
             <input 
               type="range" min={QUESTIONS[currentStep].min} max={QUESTIONS[currentStep].max} step={QUESTIONS[currentStep].step} 
               value={answers[QUESTIONS[currentStep].id] !== undefined ? answers[QUESTIONS[currentStep].id] : QUESTIONS[currentStep].defaultValue} 
